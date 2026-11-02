@@ -1,241 +1,590 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realtime Photoshare & Drive Sync</title>
-    <!-- Tailwind CSS untuk styling cepat & modern -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Realtime Photoshare & Tethered Booth</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QRCode Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- JSZip for Batch Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-display { font-family: 'Outfit', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full flex flex-col transition-colors duration-300">
 
-    <!-- Header -->
-    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-            <div class="bg-indigo-600 p-2 rounded-xl text-white">
-                <i data-lucide="camera" class="w-6 h-6"></i>
+    <!-- Header Navigation -->
+    <header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 px-4 sm:px-8 py-3.5 shadow-xs">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            
+            <!-- Logo & Brand -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-violet-500/20">
+                    <i class="fa-solid fa-camera-rotate text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-lg text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                        Realtime Photoshare <span class="px-2 py-0.5 rounded-full text-[10px] bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 font-semibold uppercase tracking-wider">Live Booth</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Tethered Camera & Instant Cloud Sync</p>
+                </div>
             </div>
-            <div>
-                <h1 class="font-bold text-lg tracking-wide">Realtime Photoshare</h1>
-                <p class="text-xs text-slate-400">Live Camera & Google Drive Sync</p>
+
+            <!-- Header Actions -->
+            <div class="flex items-center gap-3">
+                <!-- GDrive Status Pill -->
+                <button onclick="openGDriveModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-medium hover:bg-emerald-100 transition shadow-2xs">
+                    <i class="fa-brands fa-google-drive text-sm"></i>
+                    <span id="gdriveStatusText">GDrive Terhubung</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                </button>
+
+                <!-- Theme Toggle -->
+                <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition" title="Ganti Tema">
+                    <i id="themeIcon" class="fa-solid fa-moon text-sm"></i>
+                </button>
+
+                <!-- Batch Download Button -->
+                <button onclick="downloadAllZip()" id="zipBtn" disabled class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 text-white font-medium text-xs transition flex items-center gap-2 shadow-sm cursor-pointer disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-file-zipper"></i> Unduh Semua (ZIP)
+                </button>
             </div>
-        </div>
-        <div class="flex items-center space-x-2">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                Ready to Connect
-            </span>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Left/Top: Camera & Capture Controls (2 Columns on Desktop) -->
-        <div class="lg:col-span-2 flex flex-col space-y-6">
-            <!-- Viewport Kamera -->
-            <div class="relative bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden aspect-video flex items-center justify-center shadow-2xl">
-                <video id="videoElement" autoplay playsinline class="w-full h-full object-cover transform -scale-x-100"></video>
-                <canvas id="canvasElement" class="hidden"></canvas>
+    <!-- Main Workspace -->
+    <main class="max-w-7xl mx-auto w-full p-4 sm:p-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Live Camera & Capture Controls (7 Cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Viewfinder Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col relative overflow-hidden">
                 
-                <!-- Flash Overlay Effect -->
-                <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-150"></div>
-                
-                <!-- Countdown Display -->
-                <div id="countdownDisplay" class="absolute inset-0 flex items-center justify-center text-7xl font-extrabold text-white drop-shadow-lg hidden">
-                    3
-                </div>
+                <!-- Viewfinder Header Toolbar -->
+                <div class="flex items-center justify-between mb-4 z-10">
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-lg bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> Live View
+                        </span>
+                        <span id="resolutionBadge" class="text-xs text-slate-400 font-medium hidden sm:inline">1280x720 • 30fps</span>
+                    </div>
 
-                <!-- Status Placeholder kalau kamera belum aktif -->
-                <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 text-slate-400 p-6 text-center">
-                    <i data-lucide="video-off" class="w-12 h-12 mb-3 text-slate-600"></i>
-                    <p class="font-medium text-slate-300">Kamera belum aktif</p>
-                    <p class="text-xs text-slate-500 mt-1">Klik tombol di bawah untuk menyalakan kamera perangkat atau eksternal.</p>
-                    <button onclick="startCamera()" class="mt-4 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center space-x-2">
-                        <i data-lucide="play" class="w-4 h-4"></i>
-                        <span>Aktifkan Kamera</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Control Buttons -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center space-x-3">
-                    <button onclick="startCamera()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-sm font-medium transition flex items-center space-x-2">
-                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                        <span>Reset / Ganti Kamera</span>
-                    </button>
-                </div>
-                <div class="flex items-center space-x-3 w-full sm:w-auto">
-                    <button id="captureBtn" onclick="triggerCapture()" disabled class="flex-1 sm:flex-none px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold rounded-xl text-sm transition shadow-lg shadow-indigo-600/20 flex items-center justify-center space-x-2">
-                        <i data-lucide="camera" class="w-4 h-4"></i>
-                        <span>Jepret Foto!</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column: Realtime Gallery & Google Drive Log -->
-        <div class="flex flex-col space-y-6">
-            <!-- Galeri Foto Terbaru -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col h-[350px]">
-                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-                    <h2 class="font-bold text-sm tracking-wide flex items-center space-x-2">
-                        <i data-lucide="image" class="w-4 h-4 text-indigo-400"></i>
-                        <span>Galeri Sesi Ini</span>
-                    </h2>
-                    <span id="photoCounter" class="text-xs text-slate-400 font-mono">0 Foto</span>
-                </div>
-                <div id="galleryContainer" class="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
-                    <div class="h-full flex flex-col items-center justify-center text-slate-600 text-center p-4">
-                        <i data-lucide="folder-open" class="w-8 h-8 mb-2"></i>
-                        <p class="text-xs">Belum ada foto yang dijepret.</p>
+                    <div class="flex items-center gap-2">
+                        <select id="cameraSource" onchange="switchCameraDevice()" class="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-slate-700 dark:text-slate-300 font-medium focus:outline-none focus:ring-2 focus:ring-violet-500">
+                            <option value="user">Kamera Depan / WebCam</option>
+                            <option value="environment">Kamera Belakang / Eksternal</option>
+                        </select>
+                        <button onclick="toggleMirror()" id="mirrorBtn" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs transition" title="Cermin / Flip">
+                            <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                        </button>
                     </div>
                 </div>
+
+                <!-- Video Stream Viewport -->
+                <div class="relative w-full aspect-[16/10] bg-slate-950 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center group">
+                    <video id="webcamVideo" autoplay playsinline muted class="w-full h-full object-cover transform scale-x-[-1] transition-transform duration-300"></video>
+                    <canvas id="hiddenSnapshotCanvas" class="hidden"></canvas>
+
+                    <!-- Flash Effect Layer -->
+                    <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-100 z-30"></div>
+
+                    <!-- Countdown Overlay -->
+                    <div id="countdownOverlay" class="absolute inset-0 bg-slate-950/70 backdrop-blur-xs hidden items-center justify-center z-20">
+                        <span id="countdownNumber" class="font-display font-extrabold text-white text-8xl animate-bounce">3</span>
+                    </div>
+
+                    <!-- Camera Guide Overlay (Rule of Thirds) -->
+                    <div class="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none border border-white/10 opacity-20">
+                        <div class="border-r border-b border-white/20"></div>
+                        <div class="border-r border-b border-white/20"></div>
+                        <div class="border-b border-white/20"></div>
+                        <div class="border-r border-b border-white/20"></div>
+                        <div class="border-r border-b border-white/20"></div>
+                        <div class="border-b border-white/20"></div>
+                        <div class="border-r border-white/20"></div>
+                        <div class="border-r border-white/20"></div>
+                        <div></div>
+                    </div>
+                </div>
+
+                <!-- Capture Options & Shutter Button -->
+                <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <label class="text-xs font-semibold text-slate-500 uppercase">Timer Jepret:</label>
+                        <select id="timerDelay" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300 font-medium focus:outline-none focus:ring-2 focus:ring-violet-500">
+                            <option value="0">Instan (0 Detik)</option>
+                            <option value="3" selected>3 Detik</option>
+                            <option value="5">5 Detik</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button onclick="triggerCaptureSequence()" id="shutterBtn" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-display font-bold text-base shadow-lg shadow-violet-500/25 flex items-center justify-center gap-3 transition transform active:scale-95 cursor-pointer">
+                            <i class="fa-solid fa-camera text-xl"></i> Ambil Foto Sekarang
+                        </button>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Google Drive Auto-Sync Status -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col flex-1">
-                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-                    <h2 class="font-bold text-sm tracking-wide flex items-center space-x-2">
-                        <i data-lucide="cloud-upload" class="w-4 h-4 text-emerald-400"></i>
-                        <span>Google Drive Sync Log</span>
-                    </h2>
-                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+            <!-- Tethered Hardware Info Card -->
+            <div class="bg-gradient-to-r from-violet-50/70 to-indigo-50/70 dark:from-slate-900 dark:to-slate-900 border border-violet-100 dark:border-slate-800 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                <div class="flex items-start sm:items-center gap-3.5">
+                    <div class="p-3 rounded-2xl bg-violet-600 text-white text-lg shadow-md shadow-violet-500/20">
+                        <i class="fa-solid fa-usb"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-sm text-slate-900 dark:text-white">Kabel Tethering / Kamera Eksternal Aktif</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Dukung kamera DSLR (Canon/Nikon PTP) atau HP Android via USB Debugging & Webcam apps.</p>
+                    </div>
                 </div>
-                <div id="driveLogContainer" class="flex-1 overflow-y-auto space-y-2 text-xs font-mono pr-1">
-                    <p class="text-slate-500">[System] Menunggu koneksi kamera & pengambilan foto...</p>
-                </div>
+                <button onclick="openCableGuide()" class="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline bg-white dark:bg-slate-800 px-3.5 py-2 rounded-xl border border-violet-200 dark:border-slate-700 shadow-2xs whitespace-nowrap transition">
+                    Panduan Kabel <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
             </div>
+
         </div>
-    </main>
 
-    <!-- Script Utama -->
-    <script>
-        lucide.createIcons();
-
-        const videoElement = document.getElementById('videoElement');
-        const canvasElement = document.getElementById('canvasElement');
-        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
-        const captureBtn = document.getElementById('captureBtn');
-        const flashOverlay = document.getElementById('flashOverlay');
-        const countdownDisplay = document.getElementById('countdownDisplay');
-        const galleryContainer = document.getElementById('galleryContainer');
-        const photoCounter = document.getElementById('photoCounter');
-        const driveLogContainer = document.getElementById('driveLogContainer');
-
-        let mediaStream = null;
-        let photoList = [];
-
-        // Aktifkan Kamera Web / Eksternal
-        async function startCamera() {
-            try {
-                if (mediaStream) {
-                    mediaStream.getTracks().forEach(track => track.stop());
-                }
-                mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, 
-                    audio: false 
-                });
-                videoElement.srcObject = mediaStream;
-                cameraPlaceholder.classList.add('hidden');
-                captureBtn.removeAttribute('disabled');
-                addDriveLog("Kamera berhasil terhubung dan aktif.");
-            } catch (err) {
-                alert("Gagal mengakses kamera. Pastikan izin kamera diizinkan oleh browser.");
-                console.error(err);
-            }
-        }
-
-        // Proses Hitung Mundur & Jepret Foto
-        async function triggerCapture() {
-            captureBtn.setAttribute('disabled', 'true');
+        <!-- Right Column: Live Photo Stream & Feed (5 Cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
             
-            // Hitung mundur 3, 2, 1
-            for (let i = 3; i > 0; i--) {
-                countdownDisplay.innerText = i;
-                countdownDisplay.classList.remove('hidden');
-                await new Promise(r => setTimeout(r, 1000));
-            }
-            countdownDisplay.classList.add('hidden');
+            <!-- Realtime Gallery Feed Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col flex-1 min-h-[500px]">
+                
+                <!-- Feed Header -->
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-display font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-amber-500"></i> Galeri Real-time Feed
+                        </h3>
+                        <span id="photoCountBadge" class="px-2.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 text-xs font-bold">0</span>
+                    </div>
+                    <span class="text-xs text-slate-400">Sinkron GDrive Otomatis</span>
+                </div>
 
-            // Efek Flash
-            flashOverlay.classList.remove('opacity-0');
-            flashOverlay.classList.add('opacity-100');
-            setTimeout(() => {
-                flashOverlay.classList.remove('opacity-100');
-                flashOverlay.classList.add('opacity-0');
-            }, 150);
-
-            // Ambil gambar dari video stream ke canvas
-            const context = canvasElement.getContext('2d');
-            canvasElement.width = videoElement.videoWidth || 1280;
-            canvasElement.height = videoElement.videoHeight || 720;
-            
-            context.save();
-            context.scale(-1, 1); // Mirror balik seperti preview
-            context.drawImage(videoElement, -canvasElement.width, 0, canvasElement.width, canvasElement.height);
-            context.restore();
-
-            const imageDataUrl = canvasElement.toDataURL('image/jpeg', 0.9);
-            addNewPhoto(imageDataUrl);
-
-            captureBtn.removeAttribute('disabled');
-        }
-
-        // Tambah ke Galeri & Simulasi Upload Google Drive
-        function addNewPhoto(dataUrl) {
-            const timestamp = new Date().toLocaleTimeString();
-            const photoId = 'IMG_' + Math.floor(Math.random() * 90000 + 10000);
-            
-            photoList.unshift({ id: photoId, url: dataUrl, time: timestamp });
-            
-            // Update Counter
-            photoCounter.innerText = `${photoList.length} Foto`;
-
-            // Render Galeri
-            renderGallery();
-
-            // Simulasi Upload ke Google Drive
-            addDriveLog(`Mengunggah <span class="text-indigo-400">${photoId}.jpg</span> ke Google Drive...`);
-            setTimeout(() => {
-                addDriveLog(`Sukses tersimpan di Google Drive /Photoshare_Folder/${photoId}.jpg`);
-            }, 1200);
-        }
-
-        function renderGallery() {
-            if (photoList.length === 0) return;
-            
-            galleryContainer.innerHTML = '';
-            photoList.forEach(photo => {
-                const item = document.createElement('div');
-                item.className = "flex items-center justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60";
-                item.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <img src="${photo.url}" class="w-12 h-12 object-cover rounded-lg border border-slate-700">
+                <!-- Gallery Grid Stream -->
+                <div id="galleryStreamContainer" class="grid grid-cols-2 gap-3 overflow-y-auto max-h-[520px] pr-1 flex-1 items-start">
+                    <!-- Empty State Placeholder -->
+                    <div id="emptyFeedState" class="col-span-2 text-center py-16 text-slate-400 dark:text-slate-500 flex flex-col items-center gap-3">
+                        <div class="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-600 text-2xl">
+                            <i class="fa-solid fa-images"></i>
+                        </div>
                         <div>
-                            <p class="font-medium text-xs text-slate-200">${photo.id}.jpg</p>
-                            <p class="text-[10px] text-slate-500">${photo.time}</p>
+                            <p class="font-semibold text-sm text-slate-700 dark:text-slate-300">Belum ada foto masuk</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Tekan tombol jepret untuk mulai berbagi foto secara langsung.</p>
                         </div>
                     </div>
-                    <a href="${photo.url}" download="${photo.id}.jpg" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition">
-                        <i data-lucide="download" class="w-4 h-4"></i>
-                    </a>
-                `;
-                galleryContainer.appendChild(item);
-            });
-            lucide.createIcons();
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal: QR Code & Individual Download -->
+    <div id="qrModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-5 relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeQrModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="text-center">
+                <h3 class="font-display font-bold text-xl text-slate-900 dark:text-white">Unduh & Bagikan Foto</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Scan QR code untuk mengunduh foto langsung ke HP tamu.</p>
+            </div>
+
+            <!-- QR Code Render Box -->
+            <div id="qrcodeBox" class="p-4 bg-white rounded-2xl shadow-inner border border-slate-200 flex justify-center"></div>
+
+            <div class="w-full space-y-2">
+                <button onclick="downloadSinglePhoto()" class="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold text-sm transition flex items-center justify-center gap-2 shadow-md">
+                    <i class="fa-solid fa-download"></i> Unduh Foto Ini (.jpg)
+                </button>
+                <div class="text-center">
+                    <span id="photoTimestamp" class="text-[11px] text-slate-400"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: GDrive Configuration & Logs -->
+    <div id="gdriveModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col gap-5 relative">
+            <button onclick="closeGDriveModal()" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div>
+                <h3 class="font-display font-bold text-xl text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-brands fa-google-drive text-emerald-600"></i> Google Drive Cloud Sync & Logs
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Setiap foto baru yang dijepret otomatis terunggah ke Cloud GDrive.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Target Folder GDrive</label>
+                    <input type="text" id="gdriveFolderName" value="Realtime_Photoshare_Event_2026" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Log Unggahan Real-time</label>
+                    <div id="gdriveLogsContainer" class="w-full h-36 bg-slate-900 text-emerald-400 font-mono text-[11px] p-3 rounded-xl overflow-y-auto space-y-1 border border-slate-800">
+                        <div>[SYSTEM] GDrive Sync initialized. Ready for incoming photos...</div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeGDriveModal()" class="w-full py-3 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold text-sm transition">
+                Tutup Panel
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Cable / Tethering Guide -->
+    <div id="cableGuideModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col gap-5 relative">
+            <button onclick="closeCableGuide()" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div>
+                <h3 class="font-display font-bold text-xl text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-usb text-violet-600"></i> Panduan Sambungan Kabel & Tethering
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Cara menghubungkan kamera fisik agar terbaca di browser.</p>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                <div class="p-3.5 rounded-2xl bg-violet-50/50 dark:bg-slate-800 border border-violet-100 dark:border-slate-700">
+                    <strong class="text-violet-900 dark:text-violet-300 block mb-1">1. Menggunakan Kamera Smartphone (Android/iPhone)</strong>
+                    Sambungkan HP menggunakan kabel data USB ke komputer. Gunakan mode <em>Webcam / PTP</em> atau aplikasi seperti <em>DroidCam / iVCam</em>. Kamera HP otomatis muncul di pilihan sumber video.
+                </div>
+                <div class="p-3.5 rounded-2xl bg-purple-50/50 dark:bg-slate-800 border border-purple-100 dark:border-slate-700">
+                    <strong class="text-purple-900 dark:text-purple-300 block mb-1">2. Menggunakan Kamera DSLR (Canon/Nikon)</strong>
+                    Gunakan kabel USB tethering atau HDMI capture card. Pastikan software tethering pabrikan aktif atau browser mendeteksi perangkat video eksternal.
+                </div>
+            </div>
+
+            <button onclick="closeCableGuide()" class="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold text-sm transition">
+                Mengerti & Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- Application JavaScript -->
+    <script>
+        // State Variables
+        let videoStream = null;
+        let capturedPhotosList = [];
+        let isMirrored = true;
+        let activePhotoForQr = null;
+
+        const videoElement = document.getElementById('webcamVideo');
+        const hiddenSnapshotCanvas = document.getElementById('hiddenSnapshotCanvas');
+        const cameraSourceSelect = document.getElementById('cameraSource');
+        const countdownOverlay = document.getElementById('countdownOverlay');
+        const countdownNumber = document.getElementById('countdownNumber');
+        const flashOverlay = document.getElementById('flashOverlay');
+        const galleryStreamContainer = document.getElementById('galleryStreamContainer');
+        const emptyFeedState = document.getElementById('emptyFeedState');
+        const photoCountBadge = document.getElementById('photoCountBadge');
+        const zipBtn = document.getElementById('zipBtn');
+        const gdriveLogsContainer = document.getElementById('gdriveLogsContainer');
+
+        // Audio Shutter Synthesizer using Web Audio API
+        function playShutterSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } catch (e) {
+                console.log("Audio not supported or blocked", e);
+            }
         }
 
-        function addDriveLog(message) {
-            const p = document.createElement('p');
-            p.className = "text-slate-300 border-l-2 border-indigo-500 pl-2 py-0.5";
-            p.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
-            driveLogContainer.appendChild(p);
-            driveLogContainer.scrollTop = driveLogContainer.scrollHeight;
+        // Initialize Camera on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            initCamera('user');
+        });
+
+        async function initCamera(facingMode) {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            try {
+                const constraints = {
+                    video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
+                };
+                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = videoStream;
+            } catch (err) {
+                console.warn("Kamera utama gagal diakses, mencoba fallback...", err);
+                try {
+                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    videoElement.srcObject = videoStream;
+                } catch (e) {
+                    console.error("Gagal mengakses kamera perangkat.");
+                }
+            }
+        }
+
+        function switchCameraDevice() {
+            const val = cameraSourceSelect.value;
+            initCamera(val);
+        }
+
+        function toggleMirror() {
+            isMirrored = !isMirrored;
+            if (isMirrored) {
+                videoElement.classList.add('scale-x-[-1]');
+            } else {
+                videoElement.classList.remove('scale-x-[-1]');
+            }
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('themeIcon').className = isDark ? "fa-solid fa-sun text-sm" : "fa-solid fa-moon text-sm";
+        }
+
+        // Capture Flow with Timer
+        function triggerCaptureSequence() {
+            const delay = parseInt(document.getElementById('timerDelay').value) || 0;
+            if (delay === 0) {
+                executeSnapshot();
+            } else {
+                let timeLeft = delay;
+                countdownOverlay.classList.remove('hidden');
+                countdownOverlay.classList.add('flex');
+                countdownNumber.innerText = timeLeft;
+
+                const timerInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft > 0) {
+                        countdownNumber.innerText = timeLeft;
+                    } else {
+                        clearInterval(timerInterval);
+                        countdownOverlay.classList.remove('flex');
+                        countdownOverlay.classList.add('hidden');
+                        executeSnapshot();
+                    }
+                }, 1000);
+            }
+        }
+
+        function executeSnapshot() {
+            // Flash effect
+            flashOverlay.classList.remove('opacity-0');
+            flashOverlay.classList.add('opacity-90');
+            setTimeout(() => {
+                flashOverlay.classList.remove('opacity-90');
+                flashOverlay.classList.add('opacity-0');
+            }, 120);
+
+            playShutterSound();
+
+            // Draw frame to hidden canvas
+            hiddenSnapshotCanvas.width = videoElement.videoWidth || 1280;
+            hiddenSnapshotCanvas.height = videoElement.videoHeight || 720;
+            const ctx = hiddenSnapshotCanvas.getContext('2d');
+
+            ctx.save();
+            if (isMirrored) {
+                ctx.scale(-1, 1);
+                ctx.drawImage(videoElement, -hiddenSnapshotCanvas.width, 0, hiddenSnapshotCanvas.width, hiddenSnapshotCanvas.height);
+            } else {
+                ctx.drawImage(videoElement, 0, 0, hiddenSnapshotCanvas.width, hiddenSnapshotCanvas.height);
+            }
+            ctx.restore();
+
+            const dataURL = hiddenSnapshotCanvas.toDataURL('image/jpeg', 0.95);
+            const timestamp = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const photoObj = {
+                id: 'PHOTO-' + Date.now(),
+                url: dataURL,
+                time: timestamp
+            };
+
+            capturedPhotosList.unshift(photoObj); // Add to beginning for real-time feed stream
+            renderGalleryFeed();
+            simulateBackgroundUpload(photoObj);
+        }
+
+        // Render Realtime Feed
+        function renderGalleryFeed() {
+            photoCountBadge.innerText = capturedPhotosList.length;
+            if (capturedPhotosList.length > 0) {
+                emptyFeedState.classList.add('hidden');
+                zipBtn.disabled = false;
+            } else {
+                emptyFeedState.classList.remove('hidden');
+                zipBtn.disabled = true;
+                return;
+            }
+
+            galleryStreamContainer.innerHTML = '';
+            capturedPhotosList.forEach((photo) => {
+                const card = document.createElement('div');
+                card.className = "relative rounded-2xl overflow-hidden aspect-[4/3] border border-slate-200 dark:border-slate-800 shadow-xs group bg-slate-100 dark:bg-slate-800 animate-in fade-in duration-300";
+                card.innerHTML = `
+                    <img src="${photo.url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent opacity-0 group-hover:opacity-100 transition flex flex-col justify-between p-2.5">
+                        <span class="text-[10px] text-white bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-full self-start">${photo.time}</span>
+                        <div class="flex items-center gap-1.5 justify-end">
+                            <button onclick="openQrModal('${photo.id}')" class="p-2 rounded-xl bg-white/90 hover:bg-white text-slate-900 text-xs shadow-md transition" title="QR Code & Unduh">
+                                <i class="fa-solid fa-qrcode"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                galleryStreamContainer.appendChild(card);
+            });
+        }
+
+        // Simulated Automatic Background Upload to Google Drive
+        function simulateBackgroundUpload(photo) {
+            const folderName = document.getElementById('gdriveFolderName').value || "Realtime_Photoshare_Event_2026";
+            const logEntry = document.createElement('div');
+            logEntry.innerText = `[${photo.time}] UPLOAD SUCCESS: ${photo.id}.jpg -> GDrive:/${folderName}/`;
+            gdriveLogsContainer.appendChild(logEntry);
+            gdriveLogsContainer.scrollTop = gdriveLogsContainer.scrollHeight;
+        }
+
+        // QR Code Modal Functions
+        function openQrModal(photoId) {
+            activePhotoForQr = capturedPhotosList.find(p => p.id === photoId);
+            if (!activePhotoForQr) return;
+
+            document.getElementById('photoTimestamp').innerText = `Waktu Jepret: ${activePhotoForQr.time} (${activePhotoForQr.id})`;
+            
+            // Clear and render QR code
+            const qrcodeBox = document.getElementById('qrcodeBox');
+            qrcodeBox.innerHTML = '';
+            new QRCode(qrcodeBox, {
+                text: activePhotoForQr.url.substring(0, 100) + "...[DownloadLink]",
+                width: 180,
+                height: 180,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qrModal').classList.remove('hidden');
+            document.getElementById('qrModal').classList.add('flex');
+        }
+
+        function closeQrModal() {
+            document.getElementById('qrModal').classList.remove('flex');
+            document.getElementById('qrModal').classList.add('hidden');
+        }
+
+        function downloadSinglePhoto() {
+            if (!activePhotoForQr) return;
+            const link = document.createElement('a');
+            link.download = `${activePhotoForQr.id}.jpg`;
+            link.href = activePhotoForQr.url;
+            link.click();
+        }
+
+        // Batch ZIP Download using JSZip
+        async function downloadAllZip() {
+            if (capturedPhotosList.length === 0) return;
+
+            zipBtn.disabled = true;
+            zipBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Menyiapkan ZIP...`;
+
+            try {
+                const zip = new JSZip();
+                const folder = zip.folder("RealtimePhotoshare_Session");
+
+                capturedPhotosList.forEach((photo, idx) => {
+                    const base64Data = photo.url.replace(/^data:image\/jpeg;base64,/, "");
+                    folder.file(`Photo_${idx + 1}_${photo.id}.jpg`, base64Data, { base64: true });
+                });
+
+                const content = await zip.generateAsync({ type: "blob" });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = `Photoshare_Batch_${Date.now()}.zip`;
+                link.click();
+
+                zipBtn.disabled = false;
+                zipBtn.innerHTML = `<i class="fa-solid fa-file-zipper"></i> Unduh Semua (ZIP)`;
+            } catch (err) {
+                console.error("Gagal membuat file ZIP", err);
+                zipBtn.disabled = false;
+                zipBtn.innerHTML = `<i class="fa-solid fa-file-zipper"></i> Unduh Semua (ZIP)`;
+            }
+        }
+
+        // GDrive Modal
+        function openGDriveModal() {
+            document.getElementById('gdriveModal').classList.remove('hidden');
+            document.getElementById('gdriveModal').classList.add('flex');
+        }
+        function closeGDriveModal() {
+            document.getElementById('gdriveModal').classList.remove('flex');
+            document.getElementById('gdriveModal').classList.add('hidden');
+        }
+
+        // Cable Guide Modal
+        function openCableGuide() {
+            document.getElementById('cableGuideModal').classList.remove('hidden');
+            document.getElementById('cableGuideModal').classList.add('flex');
+        }
+        function closeCableGuide() {
+            document.getElementById('cableGuideModal').classList.remove('flex');
+            document.getElementById('cableGuideModal').classList.add('hidden');
         }
     </script>
+
 </body>
 </html>
