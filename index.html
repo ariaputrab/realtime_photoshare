@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Photoshare & Drive Sync</title>
+    <!-- Tailwind CSS untuk styling cepat & modern -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 p-2 rounded-xl text-white">
+                <i data-lucide="camera" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wide">Realtime Photoshare</h1>
+                <p class="text-xs text-slate-400">Live Camera & Google Drive Sync</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                Ready to Connect
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left/Top: Camera & Capture Controls (2 Columns on Desktop) -->
+        <div class="lg:col-span-2 flex flex-col space-y-6">
+            <!-- Viewport Kamera -->
+            <div class="relative bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden aspect-video flex items-center justify-center shadow-2xl">
+                <video id="videoElement" autoplay playsinline class="w-full h-full object-cover transform -scale-x-100"></video>
+                <canvas id="canvasElement" class="hidden"></canvas>
+                
+                <!-- Flash Overlay Effect -->
+                <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-150"></div>
+                
+                <!-- Countdown Display -->
+                <div id="countdownDisplay" class="absolute inset-0 flex items-center justify-center text-7xl font-extrabold text-white drop-shadow-lg hidden">
+                    3
+                </div>
+
+                <!-- Status Placeholder kalau kamera belum aktif -->
+                <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 text-slate-400 p-6 text-center">
+                    <i data-lucide="video-off" class="w-12 h-12 mb-3 text-slate-600"></i>
+                    <p class="font-medium text-slate-300">Kamera belum aktif</p>
+                    <p class="text-xs text-slate-500 mt-1">Klik tombol di bawah untuk menyalakan kamera perangkat atau eksternal.</p>
+                    <button onclick="startCamera()" class="mt-4 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center space-x-2">
+                        <i data-lucide="play" class="w-4 h-4"></i>
+                        <span>Aktifkan Kamera</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <button onclick="startCamera()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-sm font-medium transition flex items-center space-x-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span>Reset / Ganti Kamera</span>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <button id="captureBtn" onclick="triggerCapture()" disabled class="flex-1 sm:flex-none px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold rounded-xl text-sm transition shadow-lg shadow-indigo-600/20 flex items-center justify-center space-x-2">
+                        <i data-lucide="camera" class="w-4 h-4"></i>
+                        <span>Jepret Foto!</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Realtime Gallery & Google Drive Log -->
+        <div class="flex flex-col space-y-6">
+            <!-- Galeri Foto Terbaru -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col h-[350px]">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+                    <h2 class="font-bold text-sm tracking-wide flex items-center space-x-2">
+                        <i data-lucide="image" class="w-4 h-4 text-indigo-400"></i>
+                        <span>Galeri Sesi Ini</span>
+                    </h2>
+                    <span id="photoCounter" class="text-xs text-slate-400 font-mono">0 Foto</span>
+                </div>
+                <div id="galleryContainer" class="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
+                    <div class="h-full flex flex-col items-center justify-center text-slate-600 text-center p-4">
+                        <i data-lucide="folder-open" class="w-8 h-8 mb-2"></i>
+                        <p class="text-xs">Belum ada foto yang dijepret.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Drive Auto-Sync Status -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col flex-1">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+                    <h2 class="font-bold text-sm tracking-wide flex items-center space-x-2">
+                        <i data-lucide="cloud-upload" class="w-4 h-4 text-emerald-400"></i>
+                        <span>Google Drive Sync Log</span>
+                    </h2>
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                </div>
+                <div id="driveLogContainer" class="flex-1 overflow-y-auto space-y-2 text-xs font-mono pr-1">
+                    <p class="text-slate-500">[System] Menunggu koneksi kamera & pengambilan foto...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Script Utama -->
+    <script>
+        lucide.createIcons();
+
+        const videoElement = document.getElementById('videoElement');
+        const canvasElement = document.getElementById('canvasElement');
+        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+        const captureBtn = document.getElementById('captureBtn');
+        const flashOverlay = document.getElementById('flashOverlay');
+        const countdownDisplay = document.getElementById('countdownDisplay');
+        const galleryContainer = document.getElementById('galleryContainer');
+        const photoCounter = document.getElementById('photoCounter');
+        const driveLogContainer = document.getElementById('driveLogContainer');
+
+        let mediaStream = null;
+        let photoList = [];
+
+        // Aktifkan Kamera Web / Eksternal
+        async function startCamera() {
+            try {
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                }
+                mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, 
+                    audio: false 
+                });
+                videoElement.srcObject = mediaStream;
+                cameraPlaceholder.classList.add('hidden');
+                captureBtn.removeAttribute('disabled');
+                addDriveLog("Kamera berhasil terhubung dan aktif.");
+            } catch (err) {
+                alert("Gagal mengakses kamera. Pastikan izin kamera diizinkan oleh browser.");
+                console.error(err);
+            }
+        }
+
+        // Proses Hitung Mundur & Jepret Foto
+        async function triggerCapture() {
+            captureBtn.setAttribute('disabled', 'true');
+            
+            // Hitung mundur 3, 2, 1
+            for (let i = 3; i > 0; i--) {
+                countdownDisplay.innerText = i;
+                countdownDisplay.classList.remove('hidden');
+                await new Promise(r => setTimeout(r, 1000));
+            }
+            countdownDisplay.classList.add('hidden');
+
+            // Efek Flash
+            flashOverlay.classList.remove('opacity-0');
+            flashOverlay.classList.add('opacity-100');
+            setTimeout(() => {
+                flashOverlay.classList.remove('opacity-100');
+                flashOverlay.classList.add('opacity-0');
+            }, 150);
+
+            // Ambil gambar dari video stream ke canvas
+            const context = canvasElement.getContext('2d');
+            canvasElement.width = videoElement.videoWidth || 1280;
+            canvasElement.height = videoElement.videoHeight || 720;
+            
+            context.save();
+            context.scale(-1, 1); // Mirror balik seperti preview
+            context.drawImage(videoElement, -canvasElement.width, 0, canvasElement.width, canvasElement.height);
+            context.restore();
+
+            const imageDataUrl = canvasElement.toDataURL('image/jpeg', 0.9);
+            addNewPhoto(imageDataUrl);
+
+            captureBtn.removeAttribute('disabled');
+        }
+
+        // Tambah ke Galeri & Simulasi Upload Google Drive
+        function addNewPhoto(dataUrl) {
+            const timestamp = new Date().toLocaleTimeString();
+            const photoId = 'IMG_' + Math.floor(Math.random() * 90000 + 10000);
+            
+            photoList.unshift({ id: photoId, url: dataUrl, time: timestamp });
+            
+            // Update Counter
+            photoCounter.innerText = `${photoList.length} Foto`;
+
+            // Render Galeri
+            renderGallery();
+
+            // Simulasi Upload ke Google Drive
+            addDriveLog(`Mengunggah <span class="text-indigo-400">${photoId}.jpg</span> ke Google Drive...`);
+            setTimeout(() => {
+                addDriveLog(`Sukses tersimpan di Google Drive /Photoshare_Folder/${photoId}.jpg`);
+            }, 1200);
+        }
+
+        function renderGallery() {
+            if (photoList.length === 0) return;
+            
+            galleryContainer.innerHTML = '';
+            photoList.forEach(photo => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60";
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <img src="${photo.url}" class="w-12 h-12 object-cover rounded-lg border border-slate-700">
+                        <div>
+                            <p class="font-medium text-xs text-slate-200">${photo.id}.jpg</p>
+                            <p class="text-[10px] text-slate-500">${photo.time}</p>
+                        </div>
+                    </div>
+                    <a href="${photo.url}" download="${photo.id}.jpg" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                    </a>
+                `;
+                galleryContainer.appendChild(item);
+            });
+            lucide.createIcons();
+        }
+
+        function addDriveLog(message) {
+            const p = document.createElement('p');
+            p.className = "text-slate-300 border-l-2 border-indigo-500 pl-2 py-0.5";
+            p.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            driveLogContainer.appendChild(p);
+            driveLogContainer.scrollTop = driveLogContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>
