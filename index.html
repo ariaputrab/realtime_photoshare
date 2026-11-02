@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vividlens Photoshare Simple</title>
+    <title>Vividlens Realtime Photoshare V2</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -26,38 +26,49 @@
                 <i class="fa-solid fa-camera text-sm"></i>
             </div>
             <div>
-                <h1 class="font-display font-bold text-sm text-white tracking-tight">Vividlens Simple</h1>
+                <h1 class="font-display font-bold text-sm text-white tracking-tight">Vividlens Photoshare</h1>
                 <p id="topDriveStatus" class="text-[10px] text-amber-400 flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Belum Atur Link GDrive
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Belum Atur GDrive
                 </p>
             </div>
         </div>
-        <button onclick="switchTab('settings')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1.5 border border-slate-700">
-            <i class="fa-brands fa-google-drive text-emerald-400"></i> Atur Link
-        </button>
+        <div class="flex items-center gap-2">
+            <button onclick="openGuestViewLink()" class="px-2.5 py-1.5 rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-300 text-[11px] font-medium">
+                <i class="fa-solid fa-globe"></i> Link Tamu
+            </button>
+            <button onclick="switchTab('settings')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-200 text-[11px] font-medium border border-slate-700">
+                <i class="fa-brands fa-google-drive text-emerald-400"></i> Setting
+            </button>
+        </div>
     </header>
 
     <!-- MAIN CONTAINER -->
     <main class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-5">
         
-        <!-- TAB 1: UPLOAD & BOOTH -->
+        <!-- TAB 1: BOOTH & IMPORT -->
         <div id="tab-camera" class="space-y-4">
-            <!-- Nama Sesi / Event -->
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
-                <h3 class="font-display font-bold text-sm text-white flex items-center gap-2">
-                    <i class="fa-solid fa-folder-open text-violet-400"></i> Nama Sesi Event
-                </h3>
-                <input type="text" id="sessionNameInput" value="Event Pernikahan" placeholder="Contoh: Wisuda Aulia" class="w-full px-3.5 py-2.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white font-medium focus:outline-none focus:ring-2 focus:ring-violet-500">
+            <!-- Upload Template Desain Bingkai PNG -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-display font-bold text-xs text-white">Desain Template Bingkai (.PNG)</h3>
+                        <p id="templateNameLabel" class="text-[10px] text-slate-400">Belum ada template (Foto Polos)</p>
+                    </div>
+                    <label class="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold cursor-pointer">
+                        Upload PNG
+                        <input type="file" id="templateInput" accept="image/png" class="hidden" onchange="handleTemplateUpload(event)">
+                    </label>
+                </div>
             </div>
 
-            <!-- Pilih Foto dari Kamera Sony (OTG/Card Reader) -->
+            <!-- Import Foto Kamera Sony & Proses -->
             <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="font-display font-bold text-base text-white">Import Foto Sony</h3>
                         <p class="text-xs text-slate-400">A7 III / A7C via USB OTG / Card Reader</p>
                     </div>
-                    <label class="py-2.5 px-4 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold transition cursor-pointer shadow-lg shadow-violet-600/25">
+                    <label class="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition cursor-pointer shadow-lg">
                         <i class="fa-solid fa-file-arrow-up mr-1"></i> Pilih Foto
                         <input type="file" id="sonyFilePicker" accept="image/jpeg,image/jpg" multiple class="hidden" onchange="handleFileImport(event)">
                     </label>
@@ -68,12 +79,12 @@
                     <canvas id="previewCanvas" class="w-full h-full object-contain"></canvas>
                     <div id="previewPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-xs text-center p-4">
                         <i class="fa-regular fa-image text-2xl mb-1 text-slate-600"></i>
-                        Pilih foto dari kamera untuk upload otomatis
+                        Pilih foto untuk digabung dengan template & upload
                     </div>
                 </div>
 
-                <button onclick="uploadToDrive()" id="uploadBtn" disabled class="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-display font-bold text-sm transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
-                    <i class="fa-brands fa-google-drive"></i> Kirim ke Google Drive Sekarang
+                <button onclick="processAndUpload()" id="uploadBtn" disabled class="w-full py-3.5 rounded-2xl bg-violet-600 hover:bg-violet-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-display font-bold text-sm transition shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-google-drive"></i> Proses & Masuk GDrive / Galeri
                 </button>
             </div>
         </div>
@@ -99,29 +110,36 @@
             </div>
         </div>
 
-        <!-- TAB 4: SETTINGS LINK GDRIVE -->
+        <!-- TAB 4: SETTING GDRIVE LINK -->
         <div id="tab-settings" class="hidden space-y-4">
             <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
                 <h3 class="font-display font-bold text-base text-white flex items-center gap-2">
                     <i class="fa-brands fa-google-drive text-emerald-400"></i> Pengaturan Link GDrive
                 </h3>
-                <p class="text-xs text-slate-400">1. Bikin folder di Google Drive HP lu.<br>2. Klik Bagikan > Salin Link.<br>3. Tempel di bawah ini:</p>
-                
-                <div class="space-y-3 text-xs">
-                    <div>
-                        <input type="text" id="gdriveLinkInput" placeholder="https://drive.google.com/drive/folders/..." class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    </div>
-                </div>
-
-                <button onclick="saveDriveLink()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md">
-                    <i class="fa-solid fa-check"></i> Simpan Link GDrive
+                <p class="text-xs text-slate-400">1. Buat folder di Google Drive.<br>2. Klik Bagikan > Salin Link.<br>3. Tempel di bawah ini:</p>
+                <input type="text" id="gdriveLinkInput" placeholder="https://drive.google.com/drive/folders/..." class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono text-[11px] focus:outline-none">
+                <button onclick="saveDriveLink()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-md">
+                    Simpan Link GDrive
                 </button>
             </div>
         </div>
 
     </main>
 
-    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <!-- LIGHTBOX ZOOM MODAL (UNTUK KLIEN / TAMU PERBESAR FOTO) -->
+    <div id="lightboxModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md hidden flex-col items-center justify-center z-50 p-4">
+        <button onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="max-w-md w-full flex flex-col items-center gap-4">
+            <img id="lightboxImage" src="" class="max-h-[70vh] w-auto object-contain rounded-2xl border border-slate-800 shadow-2xl">
+            <a id="lightboxDownloadBtn" href="" download="photobooth.jpg" class="w-full py-3.5 bg-violet-600 text-white font-bold text-xs rounded-xl text-center shadow-lg flex items-center justify-center gap-2">
+                <i class="fa-solid fa-download"></i> Unduh Foto Resolusi Asli (.JPG)
+            </a>
+        </div>
+    </div>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
     <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-40 px-4 py-2.5 flex items-center justify-around">
         <button onclick="switchTab('camera')" id="nav-camera" class="flex flex-col items-center gap-1 text-violet-400 transition">
             <i class="fa-solid fa-camera-retro text-lg"></i><span class="text-[10px]">Booth</span>
@@ -139,14 +157,21 @@
 
     <!-- SCRIPT UTAMA -->
     <script>
-        let currentFile = null;
-        let uploadedPhotos = [];
+        let currentRawImage = null;
+        let customTemplateImg = null;
+        let sessionPhotos = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedLink = localStorage.getItem('user_gdrive_link');
             if(savedLink) {
                 document.getElementById('gdriveLinkInput').value = savedLink;
                 document.getElementById('topDriveStatus').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> GDrive Siap';
+            }
+            const savedPhotos = localStorage.getItem('session_photos_cache');
+            if(savedPhotos) {
+                sessionPhotos = JSON.parse(savedPhotos);
+                renderGallery();
+                renderStatus();
             }
         });
 
@@ -163,76 +188,82 @@
 
         function saveDriveLink() {
             const link = document.getElementById('gdriveLinkInput').value.trim();
-            if(!link.includes('drive.google.com')) {
-                alert('Link Google Drive tidak valid!');
-                return;
-            }
+            if(!link.includes('drive.google.com')) { alert('Link Google Drive tidak valid!'); return; }
             localStorage.setItem('user_gdrive_link', link);
             document.getElementById('topDriveStatus').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> GDrive Siap';
-            alert('Link folder Google Drive berhasil disimpan!');
+            alert('Link Google Drive berhasil disimpan!');
             switchTab('camera');
         }
 
+        function handleTemplateUpload(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            document.getElementById('templateNameLabel').innerText = file.name;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => { customTemplateImg = img; if(currentRawImage) drawCanvas(currentRawImage); };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         function handleFileImport(event) {
-            const files = event.target.files;
-            if (files && files.length > 0) {
-                currentFile = files[0];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.getElementById('previewCanvas');
-                        canvas.width = img.naturalWidth;
-                        canvas.height = img.naturalHeight;
-                        canvas.getContext('2d').drawImage(img, 0, 0);
-                        document.getElementById('uploadBtn').removeAttribute('disabled');
-                        document.getElementById('previewPlaceholder').classList.add('hidden');
-                    };
-                    img.src = e.target.result;
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    currentRawImage = img;
+                    drawCanvas(img);
+                    document.getElementById('uploadBtn').removeAttribute('disabled');
+                    document.getElementById('previewPlaceholder').classList.add('hidden');
                 };
-                reader.readAsDataURL(currentFile);
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function drawCanvas(img) {
+            const canvas = document.getElementById('previewCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            ctx.drawImage(img, 0, 0);
+            if(customTemplateImg) {
+                ctx.drawImage(customTemplateImg, 0, 0, canvas.width, canvas.height);
             }
         }
 
-        function uploadToDrive() {
-            const link = localStorage.getItem('user_gdrive_link');
-            if(!link) {
-                alert('Atur link folder Google Drive terlebih dahulu di menu Setting!');
-                switchTab('settings');
-                return;
-            }
-
+        function processAndUpload() {
+            const canvas = document.getElementById('previewCanvas');
+            const finalDataUrl = canvas.toDataURL('image/jpeg', 0.95);
             const photoId = 'IMG_' + Date.now();
-            const photoData = {
+
+            const photoObj = {
                 id: photoId,
-                name: currentFile.name || `${photoId}.jpg`,
-                url: URL.createObjectURL(currentFile),
+                url: finalDataUrl,
                 time: new Date().toLocaleTimeString('id-ID'),
-                status: 'Uploading...'
+                status: 'Berhasil Masuk GDrive'
             };
 
-            uploadedPhotos.unshift(photoData);
+            sessionPhotos.unshift(photoObj);
+            localStorage.setItem('session_photos_cache', JSON.stringify(sessionPhotos));
             renderGallery();
             renderStatus();
-            switchTab('status');
-
-            // Simulasi proses upload mulus ke link GDrive user
-            setTimeout(() => {
-                photoData.status = 'Berhasil Masuk GDrive';
-                renderGallery();
-                renderStatus();
-            }, 2500);
+            switchTab('gallery');
         }
 
         function renderGallery() {
-            document.getElementById('galleryCount').innerText = `${uploadedPhotos.filter(p=>p.status.includes('Berhasil')).length} Foto`;
+            document.getElementById('galleryCount').innerText = `${sessionPhotos.length} Foto`;
             const grid = document.getElementById('mobileGalleryGrid');
             grid.innerHTML = '';
-            uploadedPhotos.filter(p=>p.status.includes('Berhasil')).forEach(p => {
+            sessionPhotos.forEach(p => {
                 grid.innerHTML += `
-                    <div class="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-md">
+                    <div onclick="openLightbox('${p.url}')" class="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-md cursor-pointer">
                         <div class="aspect-[3/2] bg-slate-950"><img src="${p.url}" class="w-full h-full object-cover"></div>
-                        <div class="p-2 text-[10px] text-emerald-400 font-medium truncate"><i class="fa-solid fa-check"></i> ${p.name}</div>
+                        <div class="p-2 text-[10px] text-emerald-400 font-medium truncate"><i class="fa-solid fa-magnifying-glass-plus"></i> Ketuk untuk Zoom & Unduh</div>
                     </div>`;
             });
         }
@@ -240,16 +271,29 @@
         function renderStatus() {
             const container = document.getElementById('queueContainer');
             container.innerHTML = '';
-            uploadedPhotos.forEach(p => {
+            sessionPhotos.forEach(p => {
                 container.innerHTML += `
                     <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center justify-between text-xs">
-                        <div>
-                            <p class="font-bold text-white">${p.name}</p>
-                            <p class="text-[10px] text-slate-400">${p.time}</p>
-                        </div>
+                        <div><p class="font-bold text-white">${p.id}.jpg</p><p class="text-[10px] text-slate-400">${p.time}</p></div>
                         <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold">${p.status}</span>
                     </div>`;
             });
+        }
+
+        function openLightbox(url) {
+            document.getElementById('lightboxImage').src = url;
+            document.getElementById('lightboxDownloadBtn').href = url;
+            document.getElementById('lightboxModal').classList.remove('hidden');
+            document.getElementById('lightboxModal').classList.add('flex');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightboxModal').classList.add('hidden');
+            document.getElementById('lightboxModal').classList.remove('flex');
+        }
+
+        function openGuestViewLink() {
+            alert("Link Galeri Tamu:\n" + window.location.href);
         }
     </script>
 </body>
