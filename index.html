@@ -2,372 +2,387 @@
 <html lang="id" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realtime Photoshare & Custom Template Frame</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Realtime Photoshare Mobile</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter & Outfit -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- QRCode Generator Library -->
+    <!-- QRCode Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Outfit', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Outfit', 'sans-serif'] }
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .font-display { font-family: 'Outfit', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full flex flex-col transition-colors duration-300">
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col pb-20">
 
-    <!-- ================= 1. OPERATOR / BOOTH VIEW ================= -->
-    <div id="operatorView" class="flex flex-col flex-1 min-h-full">
-        <header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 px-4 sm:px-8 py-3.5 shadow-xs">
-            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center text-white shadow-md">
-                        <i class="fa-solid fa-camera-rotate text-lg"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-display font-bold text-lg text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                            Realtime Photoshare <span class="px-2 py-0.5 rounded-full text-[10px] bg-violet-100 text-violet-700 font-semibold uppercase">Custom Template Full HD</span>
-                        </h1>
-                        <p class="text-xs text-slate-500">Full Camera Resolution & Custom PNG Frame Overlay</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <button onclick="openGuestViewLink()" class="px-3.5 py-2 rounded-xl bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 text-xs font-semibold hover:bg-violet-100 transition flex items-center gap-2">
-                        <i class="fa-solid fa-globe"></i> Salin Link Galeri Tamu
-                    </button>
-                    <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
-                        <i id="themeIcon" class="fa-solid fa-moon text-sm"></i>
-                    </button>
-                </div>
+    <!-- TOP HEADER (Mobile Optimized) -->
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center text-white shadow-md shadow-violet-500/20">
+                <i class="fa-solid fa-camera text-sm"></i>
             </div>
-        </header>
-
-        <main class="max-w-7xl mx-auto w-full p-4 sm:p-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Left: Camera & Template Uploader -->
-            <div class="lg:col-span-7 flex flex-col gap-6">
-                <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-xl border border-slate-100 dark:border-slate-800 flex flex-col relative overflow-hidden">
-                    <div class="relative w-full aspect-[16/10] bg-slate-950 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center">
-                        <video id="webcamVideo" autoplay playsinline muted class="w-full h-full object-cover transform scale-x-[-1]"></video>
-                        <canvas id="hiddenSnapshotCanvas" class="hidden"></canvas>
-                        <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-100 z-30"></div>
-                        <div id="countdownOverlay" class="absolute inset-0 bg-slate-950/70 hidden items-center justify-center z-20">
-                            <span id="countdownNumber" class="font-display font-extrabold text-white text-8xl animate-bounce">3</span>
-                        </div>
-                    </div>
-
-                    <!-- FITUR UTAMA: Upload Desain Bingkai Template Sendiri (.png transparan) -->
-                    <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div>
-                            <h4 class="font-semibold text-xs text-slate-900 dark:text-white">Upload Desain Frame/Template (.png)</h4>
-                            <p id="templateFilenameLabel" class="text-[11px] text-slate-400">Belum ada template (Gunakan foto polos full)</p>
-                        </div>
-                        <label class="px-4 py-2.5 rounded-xl bg-violet-50 hover:bg-violet-100 dark:bg-violet-950 dark:hover:bg-violet-900 text-violet-700 dark:text-violet-300 font-semibold text-xs transition cursor-pointer flex items-center gap-2 border border-violet-200 dark:border-violet-800">
-                            <i class="fa-solid fa-file-image"></i> Pilih File Desain PNG
-                            <input type="file" id="templateInput" accept="image/png, image/jpeg" class="hidden" onchange="handleTemplateUpload(event)">
-                        </label>
-                    </div>
-
-                    <!-- Shutter Control -->
-                    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <select id="timerDelay" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300 font-medium">
-                            <option value="0">Instan (0 Detik)</option>
-                            <option value="3" selected>3 Detik</option>
-                        </select>
-                        <button onclick="triggerCaptureSequence()" class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-display font-bold text-base shadow-lg shadow-violet-500/25 flex items-center gap-3">
-                            <i class="fa-solid fa-camera"></i> Ambil Foto Full Resolusi
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right: Gallery Feed -->
-            <div class="lg:col-span-5 flex flex-col gap-6">
-                <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-xl border border-slate-100 dark:border-slate-800 flex flex-col flex-1 min-h-[500px]">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
-                        <h3 class="font-display font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-                            <i class="fa-solid fa-bolt text-amber-500"></i> Galeri Real-time Feed
-                        </h3>
-                        <span id="photoCountBadge" class="px-2.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 text-xs font-bold">0</span>
-                    </div>
-                    <div id="galleryStreamContainer" class="grid grid-cols-2 gap-3 overflow-y-auto max-h-[520px] pr-1 flex-1 items-start">
-                        <div id="emptyFeedState" class="col-span-2 text-center py-16 text-slate-400 flex flex-col items-center gap-3">
-                            <i class="fa-solid fa-images text-3xl"></i>
-                            <p class="text-xs">Belum ada foto masuk.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- ================= 2. GUEST GALLERY VIEW ================= -->
-    <div id="guestView" class="hidden flex-col flex-1 min-h-full bg-slate-950 text-slate-100">
-        <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 py-6 px-4 text-center sticky top-0 z-40 shadow-md">
-            <div class="max-w-4xl mx-auto space-y-1">
-                <h1 id="guestEventTitle" class="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-white">
-                    Live Photobooth Gallery
-                </h1>
-                <p class="text-xs sm:text-sm text-violet-400 font-medium">
-                    ✨ Klik foto untuk memperbesar & mengunduh ukuran asli kamera.
+            <div>
+                <h1 class="font-display font-bold text-sm text-white tracking-tight">Photoshare Mobile</h1>
+                <p id="connStatus" class="text-[10px] text-amber-400 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Siap Import USB/Card Reader
                 </p>
             </div>
-        </header>
+        </div>
+        <button onclick="openGDriveModal()" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium flex items-center gap-1.5">
+            <i class="fa-brands fa-google-drive"></i> GDrive
+        </button>
+    </header>
 
-        <main class="max-w-6xl mx-auto w-full p-4 sm:p-8 flex-1">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="font-display font-bold text-lg text-slate-300">📸 Daftar Foto Acara</h2>
-                <button onclick="switchBackToOperator()" class="text-xs text-slate-400 hover:text-white underline">Kembali ke Booth Operator</button>
+    <!-- MAIN CONTAINER (Tabs Content) -->
+    <main class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-5">
+        
+        <!-- TAB 1: CAMERA & IMPORT (Default) -->
+        <div id="tab-camera" class="space-y-4">
+            <!-- Card Koneksi & Import Kamera Sony -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-display font-bold text-base text-white">Kamera Sony (A7 III / A7C)</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Hubungkan via USB OTG / Card Reader</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-400 text-[10px] font-bold uppercase">OTG Ready</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5 pt-2">
+                    <button onclick="checkSonyConnection()" class="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl text-xs font-semibold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plug text-violet-400"></i> Deteksi Kamera
+                    </button>
+                    <label class="py-3 px-4 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-violet-600/25">
+                        <i class="fa-solid fa-file-arrow-up"></i> Import Foto (.JPG)
+                        <input type="file" id="sonyFilePicker" accept="image/jpeg" multiple class="hidden" onchange="handleSonyFilesImport(event)">
+                    </label>
+                </div>
             </div>
-            <div id="guestGalleryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-        </main>
+
+            <!-- Preview & PNG Overlay Editor Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-display font-bold text-base text-white">Editor & Frame Overlay</h3>
+                    <label class="text-xs text-violet-400 font-medium cursor-pointer hover:underline">
+                        <i class="fa-solid fa-image"></i> Ganti Template PNG
+                        <input type="file" id="overlayInput" accept="image/png" class="hidden" onchange="handleOverlayUpload(event)">
+                    </label>
+                </div>
+
+                <!-- Canvas Preview Area -->
+                <div class="relative w-full aspect-[3/2] bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center">
+                    <canvas id="previewCanvas" class="w-full h-full object-contain"></canvas>
+                    <div id="previewPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-xs text-center p-4">
+                        <i class="fa-regular fa-image text-2xl mb-1 text-slate-600"></i>
+                        Pilih foto dari kamera untuk mulai memproses
+                    </div>
+                </div>
+
+                <button onclick="processAndQueuePhoto()" id="processBtn" disabled class="w-full py-3.5 rounded-2xl bg-violet-600 hover:bg-violet-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-display font-bold text-sm transition shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Proses & Upload ke GDrive
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 2: REALTIME GALLERY -->
+        <div id="tab-gallery" class="hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> Galeri Sesi Ini
+                </h3>
+                <span id="galleryCount" class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-mono">0 Foto</span>
+            </div>
+            
+            <div id="mobileGalleryGrid" class="grid grid-cols-2 gap-3">
+                <!-- Foto masuk secara dinamis -->
+                <div class="col-span-2 text-center py-20 text-slate-500 text-xs">
+                    Belum ada foto yang diimpor.
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: UPLOAD QUEUE & STATUS -->
+        <div id="tab-queue" class="hidden space-y-4">
+            <h3 class="font-display font-bold text-lg text-white">Antrean & Status GDrive</h3>
+            <div id="queueContainer" class="space-y-2.5">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-xs text-slate-400 text-center">
+                    Antrean sinkronisasi kosong.
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-40 px-6 py-2.5 flex items-center justify-around">
+        <button onclick="switchTab('camera')" id="nav-camera" class="flex flex-col items-center gap-1 text-violet-400 transition">
+            <i class="fa-solid fa-camera-retro text-lg"></i>
+            <span class="text-[10px] font-medium">Booth</span>
+        </button>
+        <button onclick="switchTab('gallery')" id="nav-gallery" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+            <i class="fa-solid fa-images text-lg"></i>
+            <span class="text-[10px] font-medium">Galeri</span>
+        </button>
+        <button onclick="switchTab('queue')" id="nav-queue" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+            <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+            <span class="text-[10px] font-medium">Antrean</span>
+        </button>
+    </nav>
+
+    <!-- MODAL GOOGLE DRIVE CONFIG -->
+    <div id="gdriveModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-slate-900 rounded-3xl max-w-sm w-full p-6 border border-slate-800 space-y-4 relative">
+            <button onclick="closeGDriveModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+                <i class="fa-brands fa-google-drive text-emerald-400"></i> Google Drive Sync
+            </h3>
+            <p class="text-xs text-slate-400">Hubungkan folder penyimpanan cloud otomatis untuk event ini.</p>
+            <div>
+                <label class="text-xs font-semibold text-slate-300 block mb-1">Nama Folder Target GDrive</label>
+                <input type="text" id="gdriveFolderName" value="Vividlens_Event_2026" class="w-full px-3 py-2.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+            <button onclick="closeGDriveModal()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition shadow-lg shadow-emerald-600/20">
+                Simpan Konfigurasi
+            </button>
+        </div>
     </div>
 
-    <!-- ================= 3. LIGHTBOX ZOOM MODAL ================= -->
-    <div id="lightboxModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md hidden flex-col items-center justify-center z-50 p-4 sm:p-8">
-        <button onclick="closeLightbox()" class="absolute top-6 right-6 w-12 h-12 rounded-full bg-slate-800/80 hover:bg-slate-700 text-white flex items-center justify-center text-xl transition z-50 shadow-lg">
+    <!-- MODAL DETAIL / QR SHARE -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden flex-col items-center justify-center z-50 p-4">
+        <button onclick="closeDetailModal()" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        <div class="max-w-4xl w-full flex flex-col items-center gap-5 relative">
-            <img id="lightboxImage" src="" class="max-h-[75vh] w-auto object-contain rounded-2xl shadow-2xl border border-slate-800">
-            <a id="lightboxDownloadBtn" href="" download="photobooth_original.jpg" class="px-8 py-3.5 bg-violet-600 hover:bg-violet-700 text-white font-display font-bold text-sm rounded-2xl transition shadow-lg shadow-violet-600/30 flex items-center gap-2.5">
-                <i class="fa-solid fa-download text-base"></i> Unduh Ukuran Asli Kamera (.jpg)
+        <div class="max-w-sm w-full bg-slate-900 p-5 rounded-3xl border border-slate-800 flex flex-col items-center gap-4">
+            <img id="modalImagePreview" src="" class="w-full aspect-[3/2] object-cover rounded-2xl border border-slate-800">
+            <div id="modalQrBox" class="p-3 bg-white rounded-2xl"></div>
+            <a id="modalDownloadBtn" href="" download class="w-full py-3 rounded-xl bg-violet-600 text-white text-xs font-semibold text-center transition">
+                <i class="fa-solid fa-download mr-1.5"></i> Unduh Foto Original (.JPG)
             </a>
         </div>
     </div>
 
-    <!-- Modal QR -->
-    <div id="qrModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-800 flex flex-col items-center gap-5 relative">
-            <button onclick="closeQrModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <h3 class="font-display font-bold text-lg text-white">QR Code Foto</h3>
-            <div id="qrcodeBox" class="p-3 bg-white rounded-2xl shadow-inner"></div>
-            <button onclick="downloadSinglePhoto()" class="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold text-sm shadow-md">
-                <i class="fa-solid fa-download"></i> Unduh Foto (.jpg)
-            </button>
-        </div>
-    </div>
-
-    <!-- Script Utama -->
+    <!-- MAIN JAVASCRIPT LOGIC (Mobile Optimized) -->
     <script>
-        let videoStream = null;
-        let capturedPhotosList = [];
-        let activePhotoForQr = null;
-        let customTemplateImage = null; // Menyimpan file desain template PNG yang di-upload user
+        let currentRawFile = null;
+        let customOverlayImage = null;
+        let sessionPhotos = [];
 
-        const videoElement = document.getElementById('webcamVideo');
-        const hiddenSnapshotCanvas = document.getElementById('hiddenSnapshotCanvas');
-        const galleryStreamContainer = document.getElementById('galleryStreamContainer');
-        const emptyFeedState = document.getElementById('emptyFeedState');
-        const photoCountBadge = document.getElementById('photoCountBadge');
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const viewMode = urlParams.get('view');
-            const customTitle = urlParams.get('title');
-
-            if (customTitle) {
-                document.getElementById('guestEventTitle').innerText = decodeURIComponent(customTitle);
-            }
-
-            if (viewMode === 'guest') {
-                document.getElementById('operatorView').classList.add('hidden');
-                document.getElementById('guestView').classList.remove('hidden');
-                document.getElementById('guestView').classList.add('flex');
-                loadGuestPhotosFromStorage();
-            } else {
-                initCamera('user');
-            }
-        });
-
-        function openGuestViewLink() {
-            const eventName = prompt("Masukkan Nama Acara untuk Galeri Tamu:", "The Wedding of Firdha & Halim");
-            if (!eventName) return;
-            const publicLink = window.location.origin + window.location.pathname + `?view=guest&title=${encodeURIComponent(eventName)}`;
-            navigator.clipboard.writeText(publicLink);
-            alert("Link Galeri Tamu berhasil disalin!\n\nURL: " + publicLink);
+        // Tab Navigation Switcher
+        function switchTab(tabName) {
+            ['camera', 'gallery', 'queue'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).className = "flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition";
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabName}`).className = "flex flex-col items-center gap-1 text-violet-400 transition";
         }
 
-        function switchBackToOperator() {
-            window.location.href = window.location.pathname;
+        // 1. Cek Koneksi Kamera Sony via USB OTG / Card Reader
+        async function checkSonyConnection() {
+            const statusEl = document.getElementById('connStatus');
+            try {
+                // Memanggil file picker Android untuk mendeteksi storage kamera / card reader external
+                if ('showOpenFilePicker' in window) {
+                    const handles = await window.showOpenFilePicker({ multiple: false, types: [{ description: 'Sony JPEG', accept: { 'image/jpeg': ['.jpg', '.JPG'] } }] });
+                    if (handles.length > 0) {
+                        const file = await handles[0].getFile();
+                        handleSelectedFile(file);
+                        return;
+                    }
+                }
+                // Fallback universal file input
+                document.getElementById('sonyFilePicker').click();
+            } catch (err) {
+                console.log("File picker dibatalkan atau tidak didukung:", err);
+                document.getElementById('sonyFilePicker').click();
+            }
         }
 
-        // Fungsi Upload Desain Template Bingkai Sendiri (.png/.jpg)
-        function handleTemplateUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            document.getElementById('templateFilenameLabel').innerText = "Template: " + file.name;
+        function handleSonyFilesImport(event) {
+            const files = event.target.files;
+            if (files && files.length > 0) {
+                handleSelectedFile(files[0]);
+                document.getElementById('connStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Kamera Sony Terhubung (${files.length} File)`;
+            }
+        }
+
+        function handleSelectedFile(file) {
+            currentRawFile = file;
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    customTemplateImage = img;
+                    drawCanvasPreview(img);
+                    document.getElementById('processBtn').removeAttribute('disabled');
+                    document.getElementById('previewPlaceholder').classList.add('hidden');
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        async function initCamera(facingMode) {
-            try {
-                // Meminta resolusi tinggi (HD/FHD) langsung dari kamera asli
-                videoStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } }, 
-                    audio: false 
-                });
-                videoElement.srcObject = videoStream;
-            } catch (err) {
-                console.error("Kamera gagal:", err);
-            }
-        }
-
-        function triggerCaptureSequence() {
-            executeSnapshot();
-        }
-
-        // FUNGSI SNAPSHOT DENGAN RESOLUSI ASLI KAMERA & OVERLAY TEMPLATE CUSTOM
-        function executeSnapshot() {
-            // Mengambil resolusi asli dari video stream kamera agar kualitasnya tidak turun
-            const nativeWidth = videoElement.videoWidth || 1920;
-            const nativeHeight = videoElement.videoHeight || 1080;
-
-            hiddenSnapshotCanvas.width = nativeWidth;
-            hiddenSnapshotCanvas.height = nativeHeight;
-            const ctx = hiddenSnapshotCanvas.getContext('2d');
-
-            // 1. Gambar Hasil Jepretan Kamera secara Full di Kanvas
-            ctx.save();
-            ctx.translate(nativeWidth, 0);
-            ctx.scale(-1, 1); // Efek mirror video
-            ctx.drawImage(videoElement, 0, 0, nativeWidth, nativeHeight);
-            ctx.restore();
-
-            // 2. Timpa dengan Desain Template Bingkai Custom (.png) di atasnya secara Full Ukuran Asli
-            if (customTemplateImage) {
-                ctx.drawImage(customTemplateImage, 0, 0, nativeWidth, nativeHeight);
-            }
-
-            // Kualitas kompresi 0.95 agar ukuran file tetap tajam setara asli kamera
-            const dataURL = hiddenSnapshotCanvas.toDataURL('image/jpeg', 0.95);
-            const photoObj = {
-                id: 'PHOTO-' + Date.now(),
-                url: dataURL,
-                time: new Date().toLocaleTimeString()
+        // 2. Upload Custom PNG Overlay Frame
+        function handleOverlayUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    customOverlayImage = img;
+                    if (currentRawFile) {
+                        // Refresh preview
+                        const readerPreview = new FileReader();
+                        readerPreview.onload = (ev) => {
+                            const rawImg = new Image();
+                            rawImg.onload = () => drawCanvasPreview(rawImg);
+                            rawImg.src = ev.target.result;
+                        };
+                        readerPreview.readAsDataURL(currentRawFile);
+                    }
+                };
+                img.src = e.target.result;
             };
-
-            capturedPhotosList.unshift(photoObj);
-            localStorage.setItem('shared_event_photos', JSON.stringify(capturedPhotosList));
-            renderGalleryFeed();
+            reader.readAsDataURL(file);
         }
 
-        function renderGalleryFeed() {
-            photoCountBadge.innerText = capturedPhotosList.length;
-            if (capturedPhotosList.length > 0) emptyFeedState.classList.add('hidden');
+        // 3. Render Canvas (Original + PNG Overlay Frame)
+        function drawCanvasPreview(rawImg) {
+            const canvas = document.getElementById('previewCanvas');
+            const ctx = canvas.getContext('2d');
 
-            galleryStreamContainer.innerHTML = '';
-            capturedPhotosList.forEach((photo) => {
-                const card = document.createElement('div');
-                card.className = "relative rounded-2xl overflow-hidden aspect-[4/3] border border-slate-200 dark:border-slate-800 shadow-xs group bg-slate-100 cursor-pointer";
-                card.onclick = () => openLightbox(photo.url);
-                card.innerHTML = `
-                    <img src="${photo.url}" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold gap-1">
-                        <i class="fa-solid fa-magnifying-glass-plus"></i> Perbesar
-                    </div>
-                `;
-                galleryStreamContainer.appendChild(card);
-            });
+            canvas.width = rawImg.naturalWidth || 1920;
+            canvas.height = rawImg.naturalHeight || 1080;
+
+            // Gambar foto asli kamera (Full Resolusi)
+            ctx.drawImage(rawImg, 0, 0, canvas.width, canvas.height);
+
+            // Jika ada overlay frame PNG kustom, timpa di atasnya
+            if (customOverlayImage) {
+                ctx.drawImage(customOverlayImage, 0, 0, canvas.width, canvas.height);
+            }
         }
 
-        function loadGuestPhotosFromStorage() {
-            const saved = localStorage.getItem('shared_event_photos');
-            if (saved) capturedPhotosList = JSON.parse(saved);
+        // 4. Proses & Masuk Antrean Supabase / GDrive
+        function processAndQueuePhoto() {
+            if (!currentRawFile) return;
+
+            const canvas = document.getElementById('previewCanvas');
+            const editedDataUrl = canvas.toDataURL('image/jpeg', 0.95);
             
-            const grid = document.getElementById('guestGalleryGrid');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const originalDataUrl = e.target.result;
+                const photoId = 'SONY_' + Date.now();
+                const timestamp = new Date().toLocaleTimeString('id-ID');
+
+                const photoObj = {
+                    id: photoId,
+                    originalUrl: originalDataUrl,
+                    editedUrl: editedDataUrl,
+                    time: timestamp,
+                    status: 'Menyiapkan GDrive...'
+                };
+
+                sessionPhotos.unshift(photoObj);
+                renderGallery();
+                renderQueue();
+                switchTab('gallery');
+
+                // Simulasi Background Upload ke Supabase & GDrive
+                setTimeout(() => {
+                    photoObj.status = 'Tersimpan di GDrive';
+                    renderQueue();
+                }, 2000);
+            };
+            reader.readAsDataURL(currentRawFile);
+        }
+
+        // 5. Render Galeri Realtime Mobile
+        function renderGallery() {
+            document.getElementById('galleryCount').innerText = `${sessionPhotos.length} Foto`;
+            const grid = document.getElementById('mobileGalleryGrid');
             grid.innerHTML = '';
 
-            if (capturedPhotosList.length === 0) {
-                grid.innerHTML = `<p class="col-span-full text-center text-slate-400 py-12">Belum ada foto yang diunggah ke galeri acara.</p>`;
-                return;
-            }
-
-            capturedPhotosList.forEach(photo => {
+            sessionPhotos.forEach(photo => {
                 const card = document.createElement('div');
-                card.className = "bg-slate-900 p-2.5 rounded-2xl shadow-lg border border-slate-800 flex flex-col gap-2 cursor-pointer group";
-                card.onclick = () => openLightbox(photo.url);
+                card.className = "bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-md flex flex-col";
+                card.onclick = () => openDetailModal(photo);
                 card.innerHTML = `
-                    <div class="relative overflow-hidden rounded-xl aspect-[4/3]">
-                        <img src="${photo.url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                        <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold gap-1.5">
-                            <i class="fa-solid fa-expand"></i> Klik untuk Zoom
-                        </div>
+                    <div class="aspect-[3/2] overflow-hidden bg-slate-950">
+                        <img src="${photo.editedUrl}" class="w-full h-full object-cover">
                     </div>
-                    <div class="flex items-center justify-between px-1">
-                        <span class="text-[10px] text-slate-400">${photo.time}</span>
-                        <a href="${photo.url}" download="${photo.id}.jpg" onclick="event.stopPropagation()" class="px-3 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-medium transition shadow">
-                            <i class="fa-solid fa-download"></i>
-                        </a>
+                    <div class="p-2.5 flex items-center justify-between">
+                        <span class="text-[10px] text-slate-400 font-mono">${photo.time}</span>
+                        <span class="text-[10px] text-emerald-400 font-medium"><i class="fa-solid fa-check"></i> Sync</span>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function openLightbox(imageUrl) {
-            document.getElementById('lightboxImage').src = imageUrl;
-            document.getElementById('lightboxDownloadBtn').href = imageUrl;
-            document.getElementById('lightboxModal').classList.remove('hidden');
-            document.getElementById('lightboxModal').classList.add('flex');
+        // 6. Render Antrean Upload
+        function renderQueue() {
+            const container = document.getElementById('queueContainer');
+            container.innerHTML = '';
+
+            sessionPhotos.forEach(photo => {
+                const item = document.createElement('div');
+                item.className = "bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center justify-between text-xs";
+                item.innerHTML = `
+                    <div>
+                        <p class="font-bold text-white">${photo.id}.jpg</p>
+                        <p class="text-[10px] text-slate-400">${photo.time}</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold">${photo.status}</span>
+                `;
+                container.appendChild(item);
+            });
         }
 
-        function closeLightbox() {
-            document.getElementById('lightboxModal').classList.remove('flex');
-            document.getElementById('lightboxModal').classList.add('hidden');
+        // Modal Detail / QR Share
+        function openDetailModal(photo) {
+            document.getElementById('modalImagePreview').src = photo.editedUrl;
+            document.getElementById('modalDownloadBtn').href = photo.editedUrl;
+            document.getElementById('modalDownloadBtn').download = `${photo.id}_edited.jpg`;
+            
+            const qrBox = document.getElementById('modalQrBox');
+            qrBox.innerHTML = '';
+            new QRCode(qrBox, { text: photo.editedUrl, width: 130, height: 130 });
+
+            document.getElementById('detailModal').classList.remove('hidden');
+            document.getElementById('detailModal').classList.add('flex');
         }
 
-        function openQrModal(photoId) {
-            activePhotoForQr = capturedPhotosList.find(p => p.id === photoId);
-            if (!activePhotoForQr) return;
-            const qrcodeBox = document.getElementById('qrcodeBox');
-            qrcodeBox.innerHTML = '';
-            new QRCode(qrcodeBox, { text: activePhotoForQr.url, width: 160, height: 160 });
-            document.getElementById('qrModal').classList.remove('hidden');
-            document.getElementById('qrModal').classList.add('flex');
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+            document.getElementById('detailModal').classList.remove('flex');
         }
 
-        function closeQrModal() {
-            document.getElementById('qrModal').classList.remove('flex');
-            document.getElementById('qrModal').classList.add('hidden');
+        function openGDriveModal() {
+            document.getElementById('gdriveModal').classList.remove('hidden');
+            document.getElementById('gdriveModal').classList.add('flex');
         }
 
-        function downloadSinglePhoto() {
-            if (!activePhotoForQr) return;
-            const link = document.createElement('a');
-            link.download = `${activePhotoForQr.id}.jpg`;
-            link.href = activePhotoForQr.url;
-            link.click();
+        function closeGDriveModal() {
+            document.getElementById('gdriveModal').classList.add('hidden');
+            document.getElementById('gdriveModal').classList.remove('flex');
         }
     </script>
 </body>
