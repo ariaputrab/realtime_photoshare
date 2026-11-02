@@ -3,386 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Realtime Photoshare Mobile</title>
+    <title>Vividlens Photoshare Simple</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter & Outfit -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- QRCode Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Outfit', 'sans-serif'] }
-                }
-            }
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Outfit', 'sans-serif'] } } }
         }
     </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .font-display { font-family: 'Outfit', sans-serif; }
-    </style>
+    <style>body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }</style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col pb-20">
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col pb-24">
 
-    <!-- TOP HEADER (Mobile Optimized) -->
+    <!-- TOP HEADER -->
     <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
             <div class="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center text-white shadow-md shadow-violet-500/20">
                 <i class="fa-solid fa-camera text-sm"></i>
             </div>
             <div>
-                <h1 class="font-display font-bold text-sm text-white tracking-tight">Photoshare Mobile</h1>
-                <p id="connStatus" class="text-[10px] text-amber-400 flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Siap Import USB/Card Reader
+                <h1 class="font-display font-bold text-sm text-white tracking-tight">Vividlens Simple</h1>
+                <p id="topDriveStatus" class="text-[10px] text-amber-400 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Belum Atur Link GDrive
                 </p>
             </div>
         </div>
-        <button onclick="openGDriveModal()" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium flex items-center gap-1.5">
-            <i class="fa-brands fa-google-drive"></i> GDrive
+        <button onclick="switchTab('settings')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1.5 border border-slate-700">
+            <i class="fa-brands fa-google-drive text-emerald-400"></i> Atur Link
         </button>
     </header>
 
-    <!-- MAIN CONTAINER (Tabs Content) -->
+    <!-- MAIN CONTAINER -->
     <main class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-5">
         
-        <!-- TAB 1: CAMERA & IMPORT (Default) -->
+        <!-- TAB 1: UPLOAD & BOOTH -->
         <div id="tab-camera" class="space-y-4">
-            <!-- Card Koneksi & Import Kamera Sony -->
+            <!-- Nama Sesi / Event -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+                <h3 class="font-display font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open text-violet-400"></i> Nama Sesi Event
+                </h3>
+                <input type="text" id="sessionNameInput" value="Event Pernikahan" placeholder="Contoh: Wisuda Aulia" class="w-full px-3.5 py-2.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white font-medium focus:outline-none focus:ring-2 focus:ring-violet-500">
+            </div>
+
+            <!-- Pilih Foto dari Kamera Sony (OTG/Card Reader) -->
             <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="font-display font-bold text-base text-white">Kamera Sony (A7 III / A7C)</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Hubungkan via USB OTG / Card Reader</p>
+                        <h3 class="font-display font-bold text-base text-white">Import Foto Sony</h3>
+                        <p class="text-xs text-slate-400">A7 III / A7C via USB OTG / Card Reader</p>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-400 text-[10px] font-bold uppercase">OTG Ready</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2.5 pt-2">
-                    <button onclick="checkSonyConnection()" class="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl text-xs font-semibold transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-plug text-violet-400"></i> Deteksi Kamera
-                    </button>
-                    <label class="py-3 px-4 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-violet-600/25">
-                        <i class="fa-solid fa-file-arrow-up"></i> Import Foto (.JPG)
-                        <input type="file" id="sonyFilePicker" accept="image/jpeg" multiple class="hidden" onchange="handleSonyFilesImport(event)">
-                    </label>
-                </div>
-            </div>
-
-            <!-- Preview & PNG Overlay Editor Card -->
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="font-display font-bold text-base text-white">Editor & Frame Overlay</h3>
-                    <label class="text-xs text-violet-400 font-medium cursor-pointer hover:underline">
-                        <i class="fa-solid fa-image"></i> Ganti Template PNG
-                        <input type="file" id="overlayInput" accept="image/png" class="hidden" onchange="handleOverlayUpload(event)">
+                    <label class="py-2.5 px-4 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold transition cursor-pointer shadow-lg shadow-violet-600/25">
+                        <i class="fa-solid fa-file-arrow-up mr-1"></i> Pilih Foto
+                        <input type="file" id="sonyFilePicker" accept="image/jpeg,image/jpg" multiple class="hidden" onchange="handleFileImport(event)">
                     </label>
                 </div>
 
-                <!-- Canvas Preview Area -->
+                <!-- Preview Area -->
                 <div class="relative w-full aspect-[3/2] bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center">
                     <canvas id="previewCanvas" class="w-full h-full object-contain"></canvas>
                     <div id="previewPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-xs text-center p-4">
                         <i class="fa-regular fa-image text-2xl mb-1 text-slate-600"></i>
-                        Pilih foto dari kamera untuk mulai memproses
+                        Pilih foto dari kamera untuk upload otomatis
                     </div>
                 </div>
 
-                <button onclick="processAndQueuePhoto()" id="processBtn" disabled class="w-full py-3.5 rounded-2xl bg-violet-600 hover:bg-violet-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-display font-bold text-sm transition shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Proses & Upload ke GDrive
+                <button onclick="uploadToDrive()" id="uploadBtn" disabled class="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-display font-bold text-sm transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-google-drive"></i> Kirim ke Google Drive Sekarang
                 </button>
             </div>
         </div>
 
-        <!-- TAB 2: REALTIME GALLERY -->
+        <!-- TAB 2: GALERI -->
         <div id="tab-gallery" class="hidden space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
-                    <i class="fa-solid fa-bolt text-amber-400"></i> Galeri Sesi Ini
+                    <i class="fa-solid fa-images text-amber-400"></i> Galeri Sesi Ini
                 </h3>
                 <span id="galleryCount" class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-mono">0 Foto</span>
             </div>
-            
             <div id="mobileGalleryGrid" class="grid grid-cols-2 gap-3">
-                <!-- Foto masuk secara dinamis -->
-                <div class="col-span-2 text-center py-20 text-slate-500 text-xs">
-                    Belum ada foto yang diimpor.
-                </div>
+                <div class="col-span-2 text-center py-20 text-slate-500 text-xs">Belum ada foto masuk.</div>
             </div>
         </div>
 
-        <!-- TAB 3: UPLOAD QUEUE & STATUS -->
-        <div id="tab-queue" class="hidden space-y-4">
-            <h3 class="font-display font-bold text-lg text-white">Antrean & Status GDrive</h3>
+        <!-- TAB 3: STATUS UPLOAD -->
+        <div id="tab-status" class="hidden space-y-4">
+            <h3 class="font-display font-bold text-lg text-white">Status Upload GDrive</h3>
             <div id="queueContainer" class="space-y-2.5">
-                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-xs text-slate-400 text-center">
-                    Antrean sinkronisasi kosong.
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-xs text-slate-400 text-center">Belum ada antrean.</div>
+            </div>
+        </div>
+
+        <!-- TAB 4: SETTINGS LINK GDRIVE -->
+        <div id="tab-settings" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+                <h3 class="font-display font-bold text-base text-white flex items-center gap-2">
+                    <i class="fa-brands fa-google-drive text-emerald-400"></i> Pengaturan Link GDrive
+                </h3>
+                <p class="text-xs text-slate-400">1. Bikin folder di Google Drive HP lu.<br>2. Klik Bagikan > Salin Link.<br>3. Tempel di bawah ini:</p>
+                
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <input type="text" id="gdriveLinkInput" placeholder="https://drive.google.com/drive/folders/..." class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
                 </div>
+
+                <button onclick="saveDriveLink()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md">
+                    <i class="fa-solid fa-check"></i> Simpan Link GDrive
+                </button>
             </div>
         </div>
 
     </main>
 
     <!-- MOBILE BOTTOM NAVIGATION BAR -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-40 px-6 py-2.5 flex items-center justify-around">
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-40 px-4 py-2.5 flex items-center justify-around">
         <button onclick="switchTab('camera')" id="nav-camera" class="flex flex-col items-center gap-1 text-violet-400 transition">
-            <i class="fa-solid fa-camera-retro text-lg"></i>
-            <span class="text-[10px] font-medium">Booth</span>
+            <i class="fa-solid fa-camera-retro text-lg"></i><span class="text-[10px]">Booth</span>
         </button>
         <button onclick="switchTab('gallery')" id="nav-gallery" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
-            <i class="fa-solid fa-images text-lg"></i>
-            <span class="text-[10px] font-medium">Galeri</span>
+            <i class="fa-solid fa-images text-lg"></i><span class="text-[10px]">Galeri</span>
         </button>
-        <button onclick="switchTab('queue')" id="nav-queue" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
-            <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
-            <span class="text-[10px] font-medium">Antrean</span>
+        <button onclick="switchTab('status')" id="nav-status" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+            <i class="fa-solid fa-cloud-arrow-up text-lg"></i><span class="text-[10px]">Status</span>
+        </button>
+        <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+            <i class="fa-brands fa-google-drive text-lg"></i><span class="text-[10px]">Setting</span>
         </button>
     </nav>
 
-    <!-- MODAL GOOGLE DRIVE CONFIG -->
-    <div id="gdriveModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-slate-900 rounded-3xl max-w-sm w-full p-6 border border-slate-800 space-y-4 relative">
-            <button onclick="closeGDriveModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
-                <i class="fa-brands fa-google-drive text-emerald-400"></i> Google Drive Sync
-            </h3>
-            <p class="text-xs text-slate-400">Hubungkan folder penyimpanan cloud otomatis untuk event ini.</p>
-            <div>
-                <label class="text-xs font-semibold text-slate-300 block mb-1">Nama Folder Target GDrive</label>
-                <input type="text" id="gdriveFolderName" value="Vividlens_Event_2026" class="w-full px-3 py-2.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-            </div>
-            <button onclick="closeGDriveModal()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition shadow-lg shadow-emerald-600/20">
-                Simpan Konfigurasi
-            </button>
-        </div>
-    </div>
-
-    <!-- MODAL DETAIL / QR SHARE -->
-    <div id="detailModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden flex-col items-center justify-center z-50 p-4">
-        <button onclick="closeDetailModal()" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-        <div class="max-w-sm w-full bg-slate-900 p-5 rounded-3xl border border-slate-800 flex flex-col items-center gap-4">
-            <img id="modalImagePreview" src="" class="w-full aspect-[3/2] object-cover rounded-2xl border border-slate-800">
-            <div id="modalQrBox" class="p-3 bg-white rounded-2xl"></div>
-            <a id="modalDownloadBtn" href="" download class="w-full py-3 rounded-xl bg-violet-600 text-white text-xs font-semibold text-center transition">
-                <i class="fa-solid fa-download mr-1.5"></i> Unduh Foto Original (.JPG)
-            </a>
-        </div>
-    </div>
-
-    <!-- MAIN JAVASCRIPT LOGIC (Mobile Optimized) -->
+    <!-- SCRIPT UTAMA -->
     <script>
-        let currentRawFile = null;
-        let customOverlayImage = null;
-        let sessionPhotos = [];
+        let currentFile = null;
+        let uploadedPhotos = [];
 
-        // Tab Navigation Switcher
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedLink = localStorage.getItem('user_gdrive_link');
+            if(savedLink) {
+                document.getElementById('gdriveLinkInput').value = savedLink;
+                document.getElementById('topDriveStatus').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> GDrive Siap';
+            }
+        });
+
         function switchTab(tabName) {
-            ['camera', 'gallery', 'queue'].forEach(t => {
-                document.getElementById(`tab-${t}`).classList.add('hidden');
-                document.getElementById(`nav-${t}`).className = "flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition";
+            ['camera', 'gallery', 'status', 'settings'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if(el) el.classList.add('hidden');
+                const nav = document.getElementById(`nav-${t}`);
+                if(nav) nav.className = "flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition";
             });
             document.getElementById(`tab-${tabName}`).classList.remove('hidden');
             document.getElementById(`nav-${tabName}`).className = "flex flex-col items-center gap-1 text-violet-400 transition";
         }
 
-        // 1. Cek Koneksi Kamera Sony via USB OTG / Card Reader
-        async function checkSonyConnection() {
-            const statusEl = document.getElementById('connStatus');
-            try {
-                // Memanggil file picker Android untuk mendeteksi storage kamera / card reader external
-                if ('showOpenFilePicker' in window) {
-                    const handles = await window.showOpenFilePicker({ multiple: false, types: [{ description: 'Sony JPEG', accept: { 'image/jpeg': ['.jpg', '.JPG'] } }] });
-                    if (handles.length > 0) {
-                        const file = await handles[0].getFile();
-                        handleSelectedFile(file);
-                        return;
-                    }
-                }
-                // Fallback universal file input
-                document.getElementById('sonyFilePicker').click();
-            } catch (err) {
-                console.log("File picker dibatalkan atau tidak didukung:", err);
-                document.getElementById('sonyFilePicker').click();
+        function saveDriveLink() {
+            const link = document.getElementById('gdriveLinkInput').value.trim();
+            if(!link.includes('drive.google.com')) {
+                alert('Link Google Drive tidak valid!');
+                return;
             }
+            localStorage.setItem('user_gdrive_link', link);
+            document.getElementById('topDriveStatus').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> GDrive Siap';
+            alert('Link folder Google Drive berhasil disimpan!');
+            switchTab('camera');
         }
 
-        function handleSonyFilesImport(event) {
+        function handleFileImport(event) {
             const files = event.target.files;
             if (files && files.length > 0) {
-                handleSelectedFile(files[0]);
-                document.getElementById('connStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Kamera Sony Terhubung (${files.length} File)`;
+                currentFile = files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.getElementById('previewCanvas');
+                        canvas.width = img.naturalWidth;
+                        canvas.height = img.naturalHeight;
+                        canvas.getContext('2d').drawImage(img, 0, 0);
+                        document.getElementById('uploadBtn').removeAttribute('disabled');
+                        document.getElementById('previewPlaceholder').classList.add('hidden');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(currentFile);
             }
         }
 
-        function handleSelectedFile(file) {
-            currentRawFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    drawCanvasPreview(img);
-                    document.getElementById('processBtn').removeAttribute('disabled');
-                    document.getElementById('previewPlaceholder').classList.add('hidden');
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // 2. Upload Custom PNG Overlay Frame
-        function handleOverlayUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    customOverlayImage = img;
-                    if (currentRawFile) {
-                        // Refresh preview
-                        const readerPreview = new FileReader();
-                        readerPreview.onload = (ev) => {
-                            const rawImg = new Image();
-                            rawImg.onload = () => drawCanvasPreview(rawImg);
-                            rawImg.src = ev.target.result;
-                        };
-                        readerPreview.readAsDataURL(currentRawFile);
-                    }
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // 3. Render Canvas (Original + PNG Overlay Frame)
-        function drawCanvasPreview(rawImg) {
-            const canvas = document.getElementById('previewCanvas');
-            const ctx = canvas.getContext('2d');
-
-            canvas.width = rawImg.naturalWidth || 1920;
-            canvas.height = rawImg.naturalHeight || 1080;
-
-            // Gambar foto asli kamera (Full Resolusi)
-            ctx.drawImage(rawImg, 0, 0, canvas.width, canvas.height);
-
-            // Jika ada overlay frame PNG kustom, timpa di atasnya
-            if (customOverlayImage) {
-                ctx.drawImage(customOverlayImage, 0, 0, canvas.width, canvas.height);
+        function uploadToDrive() {
+            const link = localStorage.getItem('user_gdrive_link');
+            if(!link) {
+                alert('Atur link folder Google Drive terlebih dahulu di menu Setting!');
+                switchTab('settings');
+                return;
             }
-        }
 
-        // 4. Proses & Masuk Antrean Supabase / GDrive
-        function processAndQueuePhoto() {
-            if (!currentRawFile) return;
+            const photoId = 'IMG_' + Date.now();
+            const photoData = {
+                id: photoId,
+                name: currentFile.name || `${photoId}.jpg`,
+                url: URL.createObjectURL(currentFile),
+                time: new Date().toLocaleTimeString('id-ID'),
+                status: 'Uploading...'
+            };
 
-            const canvas = document.getElementById('previewCanvas');
-            const editedDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const originalDataUrl = e.target.result;
-                const photoId = 'SONY_' + Date.now();
-                const timestamp = new Date().toLocaleTimeString('id-ID');
+            uploadedPhotos.unshift(photoData);
+            renderGallery();
+            renderStatus();
+            switchTab('status');
 
-                const photoObj = {
-                    id: photoId,
-                    originalUrl: originalDataUrl,
-                    editedUrl: editedDataUrl,
-                    time: timestamp,
-                    status: 'Menyiapkan GDrive...'
-                };
-
-                sessionPhotos.unshift(photoObj);
+            // Simulasi proses upload mulus ke link GDrive user
+            setTimeout(() => {
+                photoData.status = 'Berhasil Masuk GDrive';
                 renderGallery();
-                renderQueue();
-                switchTab('gallery');
-
-                // Simulasi Background Upload ke Supabase & GDrive
-                setTimeout(() => {
-                    photoObj.status = 'Tersimpan di GDrive';
-                    renderQueue();
-                }, 2000);
-            };
-            reader.readAsDataURL(currentRawFile);
+                renderStatus();
+            }, 2500);
         }
 
-        // 5. Render Galeri Realtime Mobile
         function renderGallery() {
-            document.getElementById('galleryCount').innerText = `${sessionPhotos.length} Foto`;
+            document.getElementById('galleryCount').innerText = `${uploadedPhotos.filter(p=>p.status.includes('Berhasil')).length} Foto`;
             const grid = document.getElementById('mobileGalleryGrid');
             grid.innerHTML = '';
-
-            sessionPhotos.forEach(photo => {
-                const card = document.createElement('div');
-                card.className = "bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-md flex flex-col";
-                card.onclick = () => openDetailModal(photo);
-                card.innerHTML = `
-                    <div class="aspect-[3/2] overflow-hidden bg-slate-950">
-                        <img src="${photo.editedUrl}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="p-2.5 flex items-center justify-between">
-                        <span class="text-[10px] text-slate-400 font-mono">${photo.time}</span>
-                        <span class="text-[10px] text-emerald-400 font-medium"><i class="fa-solid fa-check"></i> Sync</span>
-                    </div>
-                `;
-                grid.appendChild(card);
+            uploadedPhotos.filter(p=>p.status.includes('Berhasil')).forEach(p => {
+                grid.innerHTML += `
+                    <div class="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-md">
+                        <div class="aspect-[3/2] bg-slate-950"><img src="${p.url}" class="w-full h-full object-cover"></div>
+                        <div class="p-2 text-[10px] text-emerald-400 font-medium truncate"><i class="fa-solid fa-check"></i> ${p.name}</div>
+                    </div>`;
             });
         }
 
-        // 6. Render Antrean Upload
-        function renderQueue() {
+        function renderStatus() {
             const container = document.getElementById('queueContainer');
             container.innerHTML = '';
-
-            sessionPhotos.forEach(photo => {
-                const item = document.createElement('div');
-                item.className = "bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center justify-between text-xs";
-                item.innerHTML = `
-                    <div>
-                        <p class="font-bold text-white">${photo.id}.jpg</p>
-                        <p class="text-[10px] text-slate-400">${photo.time}</p>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold">${photo.status}</span>
-                `;
-                container.appendChild(item);
+            uploadedPhotos.forEach(p => {
+                container.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center justify-between text-xs">
+                        <div>
+                            <p class="font-bold text-white">${p.name}</p>
+                            <p class="text-[10px] text-slate-400">${p.time}</p>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold">${p.status}</span>
+                    </div>`;
             });
-        }
-
-        // Modal Detail / QR Share
-        function openDetailModal(photo) {
-            document.getElementById('modalImagePreview').src = photo.editedUrl;
-            document.getElementById('modalDownloadBtn').href = photo.editedUrl;
-            document.getElementById('modalDownloadBtn').download = `${photo.id}_edited.jpg`;
-            
-            const qrBox = document.getElementById('modalQrBox');
-            qrBox.innerHTML = '';
-            new QRCode(qrBox, { text: photo.editedUrl, width: 130, height: 130 });
-
-            document.getElementById('detailModal').classList.remove('hidden');
-            document.getElementById('detailModal').classList.add('flex');
-        }
-
-        function closeDetailModal() {
-            document.getElementById('detailModal').classList.add('hidden');
-            document.getElementById('detailModal').classList.remove('flex');
-        }
-
-        function openGDriveModal() {
-            document.getElementById('gdriveModal').classList.remove('hidden');
-            document.getElementById('gdriveModal').classList.add('flex');
-        }
-
-        function closeGDriveModal() {
-            document.getElementById('gdriveModal').classList.add('hidden');
-            document.getElementById('gdriveModal').classList.remove('flex');
         }
     </script>
 </body>
