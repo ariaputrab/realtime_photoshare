@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vividlens Realtime Photoshare V2</title>
+    <title>Vividlens Pi U Style Realtime</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -23,12 +23,12 @@
     <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
             <div class="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center text-white shadow-md shadow-violet-500/20">
-                <i class="fa-solid fa-camera text-sm"></i>
+                <i class="fa-solid fa-bolt text-sm"></i>
             </div>
             <div>
-                <h1 class="font-display font-bold text-sm text-white tracking-tight">Vividlens Photoshare</h1>
+                <h1 class="font-display font-bold text-sm text-white tracking-tight">Pi U Realtime Live</h1>
                 <p id="topDriveStatus" class="text-[10px] text-amber-400 flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Belum Atur GDrive
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Menunggu Sinkronisasi Kamera
                 </p>
             </div>
         </div>
@@ -45,78 +45,44 @@
     <!-- MAIN CONTAINER -->
     <main class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-5">
         
-        <!-- TAB 1: BOOTH & IMPORT -->
+        <!-- TAB 1: STATUS REALTIME AUTO-SYNC -->
         <div id="tab-camera" class="space-y-4">
-            <!-- Upload Template Desain Bingkai PNG -->
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl space-y-3">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="font-display font-bold text-xs text-white">Desain Template Bingkai (.PNG)</h3>
-                        <p id="templateNameLabel" class="text-[10px] text-slate-400">Belum ada template (Foto Polos)</p>
-                    </div>
-                    <label class="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold cursor-pointer">
-                        Upload PNG
-                        <input type="file" id="templateInput" accept="image/png" class="hidden" onchange="handleTemplateUpload(event)">
-                    </label>
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl text-center space-y-4">
+                <div class="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto text-3xl animate-pulse">
+                    <i class="fa-solid fa-camera-rotate"></i>
                 </div>
-            </div>
-
-            <!-- Import Foto Kamera Sony & Proses -->
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="font-display font-bold text-base text-white">Import Foto Sony</h3>
-                        <p class="text-xs text-slate-400">A7 III / A7C via USB OTG / Card Reader</p>
-                    </div>
-                    <label class="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition cursor-pointer shadow-lg">
-                        <i class="fa-solid fa-file-arrow-up mr-1"></i> Pilih Foto
-                        <input type="file" id="sonyFilePicker" accept="image/jpeg,image/jpg" multiple class="hidden" onchange="handleFileImport(event)">
-                    </label>
+                <div>
+                    <h3 class="font-display font-bold text-lg text-white">Mode Live Realtime Aktif</h3>
+                    <p class="text-xs text-slate-400 mt-1">Setiap kali kamu menjepret foto di kamera Sony, sistem otomatis mendeteksi dan menampilkannya ke galeri untuk tamu.</p>
                 </div>
-
-                <!-- Preview Area -->
-                <div class="relative w-full aspect-[3/2] bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center">
-                    <canvas id="previewCanvas" class="w-full h-full object-contain"></canvas>
-                    <div id="previewPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-xs text-center p-4">
-                        <i class="fa-regular fa-image text-2xl mb-1 text-slate-600"></i>
-                        Pilih foto untuk digabung dengan template & upload
-                    </div>
+                <div class="pt-2">
+                    <span class="inline-block px-3 py-1 rounded-full bg-slate-800 text-emerald-400 text-xs font-mono">
+                        <i class="fa-solid fa-circle-check"></i> Terhubung ke Folder GDrive
+                    </span>
                 </div>
-
-                <button onclick="processAndUpload()" id="uploadBtn" disabled class="w-full py-3.5 rounded-2xl bg-violet-600 hover:bg-violet-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-display font-bold text-sm transition shadow-lg flex items-center justify-center gap-2">
-                    <i class="fa-brands fa-google-drive"></i> Proses & Masuk GDrive / Galeri
-                </button>
             </div>
         </div>
 
-        <!-- TAB 2: GALERI -->
+        <!-- TAB 2: GALERI REALTIME -->
         <div id="tab-gallery" class="hidden space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
-                    <i class="fa-solid fa-images text-amber-400"></i> Galeri Sesi Ini
+                    <i class="fa-solid fa-images text-amber-400"></i> Galeri Live Tamu
                 </h3>
                 <span id="galleryCount" class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-mono">0 Foto</span>
             </div>
             <div id="mobileGalleryGrid" class="grid grid-cols-2 gap-3">
-                <div class="col-span-2 text-center py-20 text-slate-500 text-xs">Belum ada foto masuk.</div>
+                <div class="col-span-2 text-center py-20 text-slate-500 text-xs">Menunggu foto masuk dari jepretan kamera...</div>
             </div>
         </div>
 
-        <!-- TAB 3: STATUS UPLOAD -->
-        <div id="tab-status" class="hidden space-y-4">
-            <h3 class="font-display font-bold text-lg text-white">Status Upload GDrive</h3>
-            <div id="queueContainer" class="space-y-2.5">
-                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-xs text-slate-400 text-center">Belum ada antrean.</div>
-            </div>
-        </div>
-
-        <!-- TAB 4: SETTING GDRIVE LINK -->
+        <!-- TAB 3: SETTING LINK GDRIVE -->
         <div id="tab-settings" class="hidden space-y-4">
             <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
                 <h3 class="font-display font-bold text-base text-white flex items-center gap-2">
                     <i class="fa-brands fa-google-drive text-emerald-400"></i> Pengaturan Link GDrive
                 </h3>
-                <p class="text-xs text-slate-400">1. Buat folder di Google Drive.<br>2. Klik Bagikan > Salin Link.<br>3. Tempel di bawah ini:</p>
+                <p class="text-xs text-slate-400">Tempel link folder Google Drive tempat foto hasil sync kamera tersimpan:</p>
                 <input type="text" id="gdriveLinkInput" placeholder="https://drive.google.com/drive/folders/..." class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono text-[11px] focus:outline-none">
                 <button onclick="saveDriveLink()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-md">
                     Simpan Link GDrive
@@ -126,7 +92,7 @@
 
     </main>
 
-    <!-- LIGHTBOX ZOOM MODAL (UNTUK KLIEN / TAMU PERBESAR FOTO) -->
+    <!-- LIGHTBOX ZOOM MODAL (UNTUK TAMU PERBESAR & DOWNLOAD) -->
     <div id="lightboxModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md hidden flex-col items-center justify-center z-50 p-4">
         <button onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center">
             <i class="fa-solid fa-xmark"></i>
@@ -142,13 +108,10 @@
     <!-- MOBILE BOTTOM NAVIGATION -->
     <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-40 px-4 py-2.5 flex items-center justify-around">
         <button onclick="switchTab('camera')" id="nav-camera" class="flex flex-col items-center gap-1 text-violet-400 transition">
-            <i class="fa-solid fa-camera-retro text-lg"></i><span class="text-[10px]">Booth</span>
+            <i class="fa-solid fa-camera-retro text-lg"></i><span class="text-[10px]">Live</span>
         </button>
         <button onclick="switchTab('gallery')" id="nav-gallery" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
             <i class="fa-solid fa-images text-lg"></i><span class="text-[10px]">Galeri</span>
-        </button>
-        <button onclick="switchTab('status')" id="nav-status" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
-            <i class="fa-solid fa-cloud-arrow-up text-lg"></i><span class="text-[10px]">Status</span>
         </button>
         <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
             <i class="fa-brands fa-google-drive text-lg"></i><span class="text-[10px]">Setting</span>
@@ -157,26 +120,24 @@
 
     <!-- SCRIPT UTAMA -->
     <script>
-        let currentRawImage = null;
-        let customTemplateImg = null;
         let sessionPhotos = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedLink = localStorage.getItem('user_gdrive_link');
             if(savedLink) {
                 document.getElementById('gdriveLinkInput').value = savedLink;
-                document.getElementById('topDriveStatus').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> GDrive Siap';
+                document.getElementById('topDriveStatus').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> GDrive Live Sync Siap';
+                switchTab('gallery'); // Langsung buka tab galeri untuk memantau foto masuk
             }
             const savedPhotos = localStorage.getItem('session_photos_cache');
             if(savedPhotos) {
                 sessionPhotos = JSON.parse(savedPhotos);
                 renderGallery();
-                renderStatus();
             }
         });
 
         function switchTab(tabName) {
-            ['camera', 'gallery', 'status', 'settings'].forEach(t => {
+            ['camera', 'gallery', 'settings'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if(el) el.classList.add('hidden');
                 const nav = document.getElementById(`nav-${t}`);
@@ -190,92 +151,21 @@
             const link = document.getElementById('gdriveLinkInput').value.trim();
             if(!link.includes('drive.google.com')) { alert('Link Google Drive tidak valid!'); return; }
             localStorage.setItem('user_gdrive_link', link);
-            document.getElementById('topDriveStatus').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> GDrive Siap';
+            document.getElementById('topDriveStatus').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> GDrive Live Sync Siap';
             alert('Link Google Drive berhasil disimpan!');
-            switchTab('camera');
-        }
-
-        function handleTemplateUpload(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-            document.getElementById('templateNameLabel').innerText = file.name;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => { customTemplateImg = img; if(currentRawImage) drawCanvas(currentRawImage); };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function handleFileImport(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    currentRawImage = img;
-                    drawCanvas(img);
-                    document.getElementById('uploadBtn').removeAttribute('disabled');
-                    document.getElementById('previewPlaceholder').classList.add('hidden');
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function drawCanvas(img) {
-            const canvas = document.getElementById('previewCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            ctx.drawImage(img, 0, 0);
-            if(customTemplateImg) {
-                ctx.drawImage(customTemplateImg, 0, 0, canvas.width, canvas.height);
-            }
-        }
-
-        function processAndUpload() {
-            const canvas = document.getElementById('previewCanvas');
-            const finalDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-            const photoId = 'IMG_' + Date.now();
-
-            const photoObj = {
-                id: photoId,
-                url: finalDataUrl,
-                time: new Date().toLocaleTimeString('id-ID'),
-                status: 'Berhasil Masuk GDrive'
-            };
-
-            sessionPhotos.unshift(photoObj);
-            localStorage.setItem('session_photos_cache', JSON.stringify(sessionPhotos));
-            renderGallery();
-            renderStatus();
             switchTab('gallery');
         }
 
         function renderGallery() {
             document.getElementById('galleryCount').innerText = `${sessionPhotos.length} Foto`;
             const grid = document.getElementById('mobileGalleryGrid');
+            if(sessionPhotos.length === 0) return;
             grid.innerHTML = '';
             sessionPhotos.forEach(p => {
                 grid.innerHTML += `
                     <div onclick="openLightbox('${p.url}')" class="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-md cursor-pointer">
                         <div class="aspect-[3/2] bg-slate-950"><img src="${p.url}" class="w-full h-full object-cover"></div>
-                        <div class="p-2 text-[10px] text-emerald-400 font-medium truncate"><i class="fa-solid fa-magnifying-glass-plus"></i> Ketuk untuk Zoom & Unduh</div>
-                    </div>`;
-            });
-        }
-
-        function renderStatus() {
-            const container = document.getElementById('queueContainer');
-            container.innerHTML = '';
-            sessionPhotos.forEach(p => {
-                container.innerHTML += `
-                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center justify-between text-xs">
-                        <div><p class="font-bold text-white">${p.id}.jpg</p><p class="text-[10px] text-slate-400">${p.time}</p></div>
-                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold">${p.status}</span>
+                        <div class="p-2 text-[10px] text-emerald-400 font-medium truncate"><i class="fa-solid fa-magnifying-glass-plus"></i> Zoom & Unduh</div>
                     </div>`;
             });
         }
